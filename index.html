@@ -597,13 +597,33 @@
             .logo-area h2 { font-size: 1.3em !important; }
         }
 
+        /* 이미지가 표 사이에서 가로로 꽉 차게 나오도록 설정 */
+        .image-card {
+            grid-column: 1 / -1 !important; /* 가로 꽉 채우기 유지 */
+            width: 100%;
+            margin: 10px 0 !important;      /* 위아래 간격만 남김 */
+            
+            /* 박스 느낌을 없애는 핵심 설정 */
+            background: none !important;    /* 하얀 배경 제거 */
+            box-shadow: none !important;    /* 그림자 제거 */
+            border: none !important;        /* 혹시 모를 테두리 제거 */
+            padding: 0 !important;          /* 내부 여백 제거 */
+        }
+
+        .image-card img {
+            width: 100%;
+            display: block;
+            border-radius: 0;               /* 이미지 자체의 곡률도 필요 없다면 0으로 */
+            object-fit: contain;
+        }
+
     </style>
 </head>
 <body class="filter-off">
 
 <div class="app-container">
     <header>
-        <div class="logo-area"><h2>아이젠트리 충남도청점</h2><span style="font-size:0.8em; opacity:0.7; margin-left:10px;">V1.1 MASTER</span></div>
+        <div class="logo-area"><h2>아이젠트리 충남도청점</h2><span style="font-size:0.8em; opacity:0.7; margin-left:0px;">안경렌즈 카달로그</span></div>
             <div class="top-controls">
                 <div class="action-row">
                     <button id="sim-main-btn" class="btn-ui" style="background:#8e44ad; font-weight:bold;" onclick="toggleSimDropdown()">🎮 시뮬레이션</button>
@@ -1019,18 +1039,35 @@
 
     function moveUnified(idx, dir) {
         let pool = [];
-        brands.forEach(b => b.lenses.forEach(l => { if(l.tabId === adminSelectedTabId) pool.push(l); }));
-        matrices.forEach(m => { if(m.tabId === adminSelectedTabId) pool.push(m); });
-        pool.sort((a,b) => (a.order || 0) - (b.order || 0));
-        
+        // 1. 현재 관리자 창에서 보고 있는 탭의 모든 제품(렌즈, 매트릭스, 이미지)을 모읍니다.
+        brands.forEach(b => b.lenses.forEach(l => { 
+            if(l.tabId === adminSelectedTabId) pool.push({obj: l, type: '일반'}); 
+        }));
+        matrices.forEach(m => { 
+            if(m.tabId === adminSelectedTabId) pool.push({obj: m, type: '매트릭스'}); 
+        });
+        if (Array.isArray(images)) {
+            images.forEach(img => {
+                if(img.tabId === adminSelectedTabId) pool.push({obj: img, type: '이미지'});
+            });
+        }
+
+        // 2. 현재 정렬 상태대로 정렬
+        pool.sort((a, b) => (a.obj.order || 0) - (b.obj.order || 0));
+
+        // 3. 순서 변경 (위치 바꿈)
         if (idx + dir < 0 || idx + dir >= pool.length) return;
-        
         const temp = pool[idx];
         pool[idx] = pool[idx + dir];
         pool[idx + dir] = temp;
 
-        pool.forEach((item, i) => item.order = (i + 1) * 10);
-        renderAdmin(); renderApp();
+        // 4. 중요: 바뀐 순서대로 실제 데이터의 order 값을 10단위로 재배정
+        pool.forEach((item, i) => {
+            item.obj.order = (i + 1) * 10;
+        });
+
+        renderAdmin(); 
+        renderApp();
     }
 
     // [메인 화면 렌더링]
@@ -1077,7 +1114,12 @@
         });
         
         // 정해진 순서(order)대로 정렬
-        pool.sort((a,b) => (a.order || 999) - (b.order || 999));
+        pool.sort((a, b) => {
+            // order 값이 없으면 0으로 취급해서 정렬 꼬임 방지
+            const orderA = a.order !== undefined ? a.order : 999;
+            const orderB = b.order !== undefined ? b.order : 999;
+            return orderA - orderB;
+        });
 
         // 화면에 카드들을 그림
         let html = '<div class="card-grid">';
@@ -1095,7 +1137,7 @@
 
     function renderImageCardHtml(img) {
         return `
-        <div class="image-card" style="grid-column: span 1; border-radius:15px; overflow:hidden; box-shadow:0 5px 20px rgba(0,0,0,0.05); background:white;">
+        <div class="image-card">
             <img src="${img.url}" style="width:100%; display:block; object-fit:contain;">
         </div>`;
     }
