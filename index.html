@@ -974,7 +974,7 @@
 
     // 2. 서버에서 데이터를 가져오는 함수
     function loadDataFromServer() {
-        db.ref('lensData').on('value', (snap) => {
+        db.ref('price_list/lensData').on('value', (snap) => {
             const data = snap.val();
             if(data) {
             categories = data.categories || categories;
@@ -1667,7 +1667,7 @@
     function saveData() {
         if(confirm("서버에 최종 저장하시겠습니까?")) {
             // 저장 시 images 배열을 반드시 포함해야 합니다.
-            db.ref('lensData').set({
+            db.ref('price_list/lensData').set({
                 categories, 
                 brands, 
                 issues, 
