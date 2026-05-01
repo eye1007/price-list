@@ -15,22 +15,40 @@
         }
 
         /* 상단 탭 영역 */
-        .sim-header { background: #ffffff; display: flex; justify-content: center; border-bottom: 2px solid #eaeaea; height: 70px; align-items: stretch; overflow-x: auto; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .sim-tab { padding: 0 30px; display: flex; align-items: center; cursor: pointer; font-weight: 800; color: #888; border-bottom: 4px solid transparent; transition: 0.2s; font-size: 1.15em; white-space: nowrap; }
-        .sim-tab.active { color: #8e44ad; border-bottom-color: #8e44ad; }
-        .sim-tab:hover:not(.active) { background: #f8f9fa; color: #333; }
+        .sim-header { 
+            background: #2c3e50; 
+            display: flex; 
+            border-bottom: none; 
+            align-items: flex-end; 
+            overflow-x: auto; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            padding: 12px 20px 0 20px;
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+            -webkit-overflow-scrolling: touch; 
+            scroll-behavior: smooth;
+        }
+        .sim-header::-webkit-scrollbar { display: none; }
+        
+        .sim-tab { 
+            padding: 14px 26px; display: flex; align-items: center; cursor: pointer; font-weight: 800; color: #ffffff; transition: background 0.2s, color 0.2s; font-size: 1.1em; white-space: nowrap; background: #1a252f; border-radius: 12px 12px 0 0; margin-right: 5px; border: none; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1); 
+        }
+        .sim-tab.active { 
+            color: #2c3e50; background: var(--bg); box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 2; 
+        }
+        .sim-tab:hover:not(.active) { background: #34495e; color: #fff; }
 
         /* 컨텐츠 공통 */
-        #sim-content-area { flex: 1; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
-        .sim-panel { width: 100%; max-width: 1200px; background: white; padding: 40px; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); box-sizing: border-box; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #sim-content-area { flex: 1; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; background: var(--bg); }
+        .sim-panel { width: 100%; max-width: 1200px; background: transparent; padding: 0; border-radius: 0; box-shadow: none; box-sizing: border-box; }
 
         /* 모바일 반응형 추가 */
         @media (max-width: 768px) {
-            .sim-header { justify-content: flex-start; }
-            .sim-tab { padding: 0 20px; font-size: 1em; }
+            .sim-header { justify-content: flex-start; padding: 10px 10px 0 10px; }
+            .sim-tab { padding: 10px 16px; font-size: 1em; }
             #sim-content-area { padding: 20px 10px; }
-            .sim-panel { padding: 25px 15px; border-radius: 15px; }
         }
 
         /* ================= 1. 굴절 이상 교정 ================= */
