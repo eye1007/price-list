@@ -39,9 +39,9 @@
 
         .tabs-bar { display: flex; background: #2c3e50; border-bottom: none; overflow-x: auto; overflow-y: hidden; padding: 8px 20px 0 20px; align-items: flex-end; flex-shrink: 0; -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
         .tabs-bar::-webkit-scrollbar { display: none; }
-        .tab { padding: 12px 22px; cursor: pointer; font-weight: 800; color: #ffffff; white-space: nowrap; transition: all 0.2s ease-in-out; position: relative; font-size: 1em; background: #1a252f; border-radius: 12px 12px 0 0; margin-right: 5px; border: none; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1); }
+        .tab { padding: 14px 26px; cursor: pointer; font-weight: 800; color: #ffffff; white-space: nowrap; transition: all 0.2s ease-in-out; position: relative; font-size: 1.05em; background: #1a252f; border-radius: 12px 12px 0 0; margin-right: 5px; border: none; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.1); }
         .tab:hover { background: #34495e; color: #fff; }
-        .tab.active { color: #2c3e50; background: var(--bg); font-size: 1.1em; padding: 14px 26px; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 2; }
+        .tab.active { color: #2c3e50; background: var(--bg); font-size: 1.15em; padding: 16px 30px; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 2; }
         .tab.active::after { display: none; }
         .content-body { padding: 30px; flex: 1; overflow-y: auto; background: var(--bg); }
 
@@ -169,7 +169,7 @@
             color: var(--sale) !important; /* 세일 시 빨간색 */
         }
 
-         #sim-modal {
+         #sim-modal, #calc-modal {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
@@ -191,7 +191,7 @@
             transform-origin: center center;
             transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0.2s;
         }
-        #sim-modal.visible {
+        #sim-modal.visible, #calc-modal.visible {
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
@@ -199,16 +199,16 @@
         }
 
         @media screen and (max-width: 1300px), screen and (max-height: 1000px) {
-            #sim-modal.visible { transform: translate(-50%, -50%) scale(0.88); }
+            #sim-modal.visible, #calc-modal.visible { transform: translate(-50%, -50%) scale(0.88); }
         }
         @media screen and (max-width: 1100px), screen and (max-height: 900px) {
-            #sim-modal.visible { transform: translate(-50%, -50%) scale(0.82); }
+            #sim-modal.visible, #calc-modal.visible { transform: translate(-50%, -50%) scale(0.82); }
         }
         @media screen and (max-width: 900px), screen and (max-height: 750px) {
-            #sim-modal.visible { transform: translate(-50%, -50%) scale(0.62); }
+            #sim-modal.visible, #calc-modal.visible { transform: translate(-50%, -50%) scale(0.62); }
         }
         @media screen and (max-width: 700px), screen and (max-height: 600px) {
-            #sim-modal.visible { transform: translate(-50%, -50%) scale(0.5); }
+            #sim-modal.visible, #calc-modal.visible { transform: translate(-50%, -50%) scale(0.5); }
         }
 
         .sim-close-overlay-btn {
@@ -322,12 +322,12 @@
                 padding: 8px 5px 0 5px !important;
             }
             .tab {
-                padding: 10px 14px !important;
-                font-size: 0.95em !important;
+                padding: 12px 18px !important;
+                font-size: 1.05em !important;
             }
             .tab.active {
-                padding: 12px 18px !important;
-                font-size: 1em !important;
+                padding: 14px 22px !important;
+                font-size: 1.1em !important;
             }
         }
 
@@ -361,6 +361,7 @@
             <div class="top-controls">
                 <div class="action-row">
                     <button id="sim-main-btn" class="btn-ui" style="background:#8e44ad; font-weight:bold;" onclick="toggleSimDropdown()">🎮 시뮬레이션</button>
+                    <button id="calc-main-btn" class="btn-ui" style="background:#27ae60; font-weight:bold;" onclick="toggleCalcModal()">🧮 계산기</button>
                     <button id="filter-toggle-btn" class="btn-ui" style="background:#95a5a6;" onclick="togglePowerFilter()">🔍 필터 OFF</button>
                     <button class="btn-ui" style="background:#e67e22; margin-left:5px;" onclick="resetAllFilters()">🔄 </button>
                 </div>
@@ -401,6 +402,10 @@
 <div id="sim-modal">
     <button class="sim-close-overlay-btn" onclick="closeSimulator()">×</button>
     <iframe src="https://eye1007.github.io/price-list/simul" style="flex:1; width:100%; height:100%; border:none; background:var(--bg);"></iframe>
+</div>
+<div id="calc-modal">
+    <button class="sim-close-overlay-btn" onclick="closeCalcModal()">×</button>
+    <iframe src="https://eye1007.github.io/calc/" style="flex:1; width:100%; height:100%; border:none; background:var(--bg);"></iframe>
 </div>
 <div id="admin-panel" class="admin-panel">
     <div style="display:flex; justify-content:space-between; margin-bottom:30px; align-items:center;">
@@ -1227,7 +1232,7 @@
     function togglePowerFilter() { isFilterActive = !isFilterActive; const btn = document.getElementById('filter-toggle-btn'); if(isFilterActive) { document.body.classList.remove('filter-off'); btn.innerText = "⚡ 필터 작동중"; btn.style.background = "var(--danger)"; } else { document.body.classList.add('filter-off'); btn.innerText = "🔍 도수 적용 안함"; btn.style.background = "#95a5a6"; } }
     function secureAdminOpen() { const pw = prompt("비밀번호 입력"); if(pw === "1111") toggleAdmin(); }
     function toggleAdmin() { const p = document.getElementById('admin-panel'); p.style.display = (p.style.display==='block'?'none':'block'); if(p.style.display==='block') renderAdmin(); }
-    function closeAllModals() { document.querySelectorAll('.admin-panel, #matrix-modal, #picker-overlay, #excel-modal').forEach(el=>el.style.display='none'); document.getElementById('ui-overlay').style.display='none'; closeSimulator(); }
+    function closeAllModals() { document.querySelectorAll('.admin-panel, #matrix-modal, #picker-overlay, #excel-modal').forEach(el=>el.style.display='none'); document.getElementById('ui-overlay').style.display='none'; closeSimulator(); closeCalcModal(); }
     function saveData() {
         if(confirm("서버에 최종 저장하시겠습니까?")) {
             // 저장 시 images 배열을 반드시 포함해야 합니다.
@@ -1358,6 +1363,16 @@
 
     function closeSimulator() {
         document.getElementById('sim-modal').classList.remove('visible');
+        document.getElementById('ui-overlay').style.display = 'none';
+    }
+
+    function toggleCalcModal() {
+        document.getElementById('calc-modal').classList.add('visible');
+        document.getElementById('ui-overlay').style.display = 'block';
+    }
+
+    function closeCalcModal() {
+        document.getElementById('calc-modal').classList.remove('visible');
         document.getElementById('ui-overlay').style.display = 'none';
     }
 
