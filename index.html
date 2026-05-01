@@ -289,7 +289,6 @@
 
             /* 로고 크기 미세 조정 */
             .logo-area h2 { font-size: 1.3em !important; }
-        }
 
         /* [아이패드/태블릿용 헤더 최적화] */
         @media screen and (max-width: 1250px) {
@@ -565,6 +564,16 @@
                     adminSelectedTabId = firstRealTab.id;
                 }
 
+                // [성능 개선] 이미지 사전 로딩 (Preload)으로 탭 전환 시 딜레이 최소화
+                setTimeout(() => {
+                    categories.forEach(cat => {
+                        if (cat.img) new Image().src = cat.img;
+                    });
+                    if (Array.isArray(images)) {
+                        images.forEach(img => { if (img.url) new Image().src = img.url; });
+                    }
+                }, 100);
+
                 renderApp(); 
                 if(document.getElementById('admin-panel').style.display === 'block') renderAdmin();
             }
@@ -702,14 +711,14 @@
         
         // 탭 하단 배너 처리
         const curCat = categories.find(c => c.id === currentTabId);
-        let banner = (curCat && curCat.img) ? `<img src="${curCat.img}" style="width:100%; max-width:100%; display:block; margin: 20px 0; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.1);">` : '';
+        let banner = (curCat && curCat.img) ? `<img src="${curCat.img}" fetchpriority="high" decoding="async" style="width:100%; max-width:100%; display:block; margin: 20px 0; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.1);">` : '';
         document.getElementById('main-display').innerHTML = html + '</div>' + banner;
     }
 
     function renderImageCardHtml(img) {
         return `
         <div class="image-card">
-            <img src="${img.url}" style="width:100%; display:block; object-fit:contain;">
+            <img src="${img.url}" fetchpriority="high" decoding="async" style="width:100%; display:block; object-fit:contain;">
         </div>`;
     }
 
