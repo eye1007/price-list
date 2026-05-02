@@ -44,6 +44,7 @@
         .tab.active { color: #2c3e50; background: var(--bg); font-size: 1.15em; padding: 16px 30px; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 2; }
         .tab.active::after { display: none; }
         .content-body { padding: 30px; flex: 1; overflow-y: auto; background: var(--bg); }
+        body.modal-open .content-body { overflow: hidden !important; }
 
         /* 매트릭스 & 카드 */
         .matrix-container {
@@ -384,7 +385,7 @@
             </div>
     </header>
 
-    <div id="ui-overlay" onclick="closeAllModals()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1998;"></div>
+    <div id="ui-overlay" onclick="closeAllModals()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1998; touch-action:none;"></div>
     
     <div id="picker-overlay" onclick="this.style.display='none'">
         <div class="picker-container" onclick="event.stopPropagation()">
@@ -1253,7 +1254,7 @@
     function togglePowerFilter() { isFilterActive = !isFilterActive; const btn = document.getElementById('filter-toggle-btn'); if(isFilterActive) { document.body.classList.remove('filter-off'); btn.innerText = "⚡ 필터 작동중"; btn.style.background = "var(--danger)"; } else { document.body.classList.add('filter-off'); btn.innerText = "🔍 도수 적용 안함"; btn.style.background = "#95a5a6"; } }
     function secureAdminOpen() { const pw = prompt("비밀번호 입력"); if(pw === "1111") toggleAdmin(); }
     function toggleAdmin() { const p = document.getElementById('admin-panel'); p.style.display = (p.style.display==='block'?'none':'block'); if(p.style.display==='block') renderAdmin(); }
-    function closeAllModals() { document.querySelectorAll('.admin-panel, #matrix-modal, #picker-overlay, #excel-modal').forEach(el=>el.style.display='none'); document.getElementById('ui-overlay').style.display='none'; closeSimulator(); closeCalcModal(); }
+    function closeAllModals() { document.querySelectorAll('.admin-panel, #matrix-modal, #picker-overlay, #excel-modal').forEach(el=>el.style.display='none'); document.getElementById('ui-overlay').style.display='none'; closeSimulator(); closeCalcModal(); document.body.classList.remove('modal-open'); }
     function saveData() {
         if(confirm("서버에 최종 저장하시겠습니까?")) {
             // 저장 시 images 배열을 반드시 포함해야 합니다.
@@ -1382,22 +1383,31 @@
     function toggleSimDropdown() {
         document.getElementById('sim-modal').classList.add('visible');
         document.getElementById('ui-overlay').style.display = 'block';
+        document.body.classList.add('modal-open');
     }
 
     function closeSimulator() {
         document.getElementById('sim-modal').classList.remove('visible');
         document.getElementById('ui-overlay').style.display = 'none';
+        document.body.classList.remove('modal-open');
     }
 
     function toggleCalcModal() {
         document.getElementById('calc-modal').classList.add('visible');
         document.getElementById('ui-overlay').style.display = 'block';
+        document.body.classList.add('modal-open');
     }
 
     function closeCalcModal() {
         document.getElementById('calc-modal').classList.remove('visible');
         document.getElementById('ui-overlay').style.display = 'none';
+        document.body.classList.remove('modal-open');
     }
+
+    // 아이패드 뒷배경 스크롤 당겨짐 방지
+    document.getElementById('ui-overlay').addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    }, { passive: false });
 
 </script>
 
