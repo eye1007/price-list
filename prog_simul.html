@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>아이젠트리 - 누진다초점 등급별 시야 시뮬레이터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* 시뮬레이터 뷰포트 */
+        .sim-viewport {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background-color: #e2e8f0;
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .bg-layer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #cbd5e1;
+        background-image: url('https://github.com/eye1007/price-list/blob/main/prog_img.png?raw=true');
+            background-size: cover;
+            background-position: center;
+        }
+        .bg-layer.blurred {
+            z-index: 1;
+            filter: blur(10px);
+            transition: filter 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .bg-layer.pattern {
+            z-index: 2;
+            background-image: radial-gradient(rgba(0, 0, 0, 0.15) 1px, transparent 1px);
+            background-color: rgba(255, 255, 255, 0.15);
+            background-size: 8px 8px;
+        }
+        .bg-layer.clear {
+            z-index: 3;
+            transition: clip-path 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            will-change: clip-path;
+        }
+
+        /* 렌즈 프레임 스타일 */
+        .lens-frame {
+            position: absolute;
+            top: 5%; bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 550px;
+            border-radius: 20% 20% 40% 40% / 15% 15% 50% 50%;
+            overflow: hidden;
+            border: 2px solid rgba(135, 206, 235, 0.5);
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+            z-index: 5;
+            background: transparent;
+        }
+        .lens-glare {
+            position: absolute; inset: 0; pointer-events: none; z-index: 10;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.1) 100%);
+        }
+
+        /* 가이드라인 SVG */
+        .guide-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
+        }
+        .guide-line {
+            fill: none;
+            stroke: #10b981;
+            stroke-width: 2.5;
+            stroke-dasharray: 6 6;
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            vector-effect: non-scaling-stroke;
+        }
+
+        .add-btn {
+            padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 14px;
+            border: 2px solid #cbd5e1; color: #64748b; transition: 0.2s; cursor: pointer;
+        }
+        .add-btn.active { background: #334155; color: white; border-color: #334155; }
+        
+        /* 타겟 마커 */
+        .target-marker {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            color: white; font-weight: 900; text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            z-index: 5; text-align: center; transition: top 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col min-h-screen">
+
+<div class="max-w-[1600px] mx-auto w-full space-y-6">
+    
+    <!-- 헤더 -->
+    <div class="text-center space-y-2">
+        <h1 class="text-3xl md:text-4xl font-black text-slate-800">💎 누진다초점 등급별 시야 시뮬레이터</h1>
+        <p class="text-slate-500 font-bold">렌즈 설계와 가입도(도수)에 따른 선명한 시야(명시역)의 차이를 확인하세요.</p>
+    </div>
+
+    <!-- 상단 컨트롤: 가입도 선택 -->
+    <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl">👀</span>
+            <div>
+                <h3 class="font-black text-slate-700">고객 가입도(ADD) 설정</h3>
+                <p class="text-[12px] text-slate-500 font-bold">노안 진행도가 높을수록 기본 시야폭이 좁아집니다.</p>
+            </div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-2" id="add-controls">
+            <button class="add-btn" onclick="setAdd(1.0)">+1.00 D</button>
+            <button class="add-btn active" onclick="setAdd(1.5)">+1.50 D</button>
+            <button class="add-btn" onclick="setAdd(2.0)">+2.00 D</button>
+            <button class="add-btn" onclick="setAdd(2.5)">+2.50 D</button>
+            <button class="add-btn" onclick="setAdd(3.0)">+3.00 D</button>
+        </div>
+    </div>
+
+    <!-- 4종 비교 그리드 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6">
+        
+        <!-- 개인맞춤 -->
+        <div class="flex flex-col bg-slate-800 rounded-3xl shadow-lg border border-slate-700 overflow-hidden text-white">
+            <div class="p-4 text-center bg-slate-900 border-b border-slate-700">
+                <div class="text-2xl mb-1">👑</div>
+                <h3 class="font-black text-lg text-yellow-400">개인맞춤 <span class="text-sm text-yellow-600 font-bold">(Individual)</span></h3>
+                <p class="text-xs font-bold text-yellow-900 mt-2 bg-yellow-400 inline-block px-3 py-1 rounded-full">100만 원 이상</p>
+            </div>
+            <div class="sim-viewport relative w-full h-[320px] bg-slate-200">
+                <div class="bg-layer outside" style="filter: blur(6px) brightness(0.65); z-index: 0;"></div>
+                <div class="lens-frame" style="width: 90%;">
+                    <div id="bg-blurred-custom" class="bg-layer blurred"></div>
+                    <div id="bg-pattern-custom" class="bg-layer pattern"></div>
+                    <div id="bg-clear-custom" class="bg-layer clear"></div>
+                    
+                    <div id="marker-top-custom" class="target-marker text-[11px]" style="top: 15%;">원거리 (운전)</div>
+                    <div id="marker-mid-custom" class="target-marker text-[11px]" style="top: 52%;">중간거리 (PC)</div>
+                    <div id="marker-bot-custom" class="target-marker text-[11px]" style="top: 85%;">근거리 (독서)</div>
+                    
+                    <svg class="guide-svg absolute inset-0 w-full h-full z-[4] pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <polyline id="line-left-custom" class="guide-line" points="" />
+                        <polyline id="line-right-custom" class="guide-line" points="" />
+                    </svg>
+                    <div class="lens-glare"></div>
+                </div>
+            </div>
+            <div class="p-5 bg-slate-800 flex-1 flex flex-col">
+                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-700 pb-2 mb-2">
+                    <span class="text-slate-400">원거리 시야폭</span>
+                    <span id="stat-top-custom" class="text-yellow-400 font-black text-sm">0%</span>
+                </div>
+                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-700 pb-2 mb-2">
+                    <span class="text-slate-400">중간거리 시야폭</span>
+                    <span id="stat-mid-custom" class="text-yellow-400 font-black text-sm">0%</span>
+                </div>
+                <div class="flex justify-between items-center text-xs font-bold mb-4">
+                    <span class="text-slate-400">근거리 시야폭</span>
+                    <span id="stat-bot-custom" class="text-yellow-400 font-black text-sm">0%</span>
+                </div>
+                <p class="text-[12px] text-slate-300 font-bold leading-relaxed break-keep mt-auto bg-slate-900 p-3 rounded-xl border border-slate-700">
+                    고객님의 착용 습관, 안경테 피팅 수치, 눈의 움직임(회선각)을 반영한 1:1 최고급 맞춤 설계입니다. 어떠한 환경에서도 가장 넓고 자연스러운 시야를 보장합니다.
+                </p>
+            </div>
+        </div>
+
+        <!-- 프리미엄 -->
+        <div class="flex flex-col bg-white rounded-3xl shadow-sm border border-rose-200 overflow-hidden ring-2 ring-rose-400 shadow-rose-100 hover:shadow-md transition-all">
+            <div class="p-4 text-center bg-rose-50 border-b border-rose-100">
+                <div class="text-2xl mb-1">🥇</div>
+                <h3 class="font-black text-lg text-rose-800">프리미엄 <span class="text-sm text-rose-500 font-bold">(Premium)</span></h3>
+                <p class="text-xs font-bold text-rose-600 mt-2 bg-white inline-block px-3 py-1 rounded-full border border-rose-200">60~90만 원대</p>
+            </div>
+            <div class="sim-viewport relative w-full h-[320px] bg-slate-200">
+                <div class="bg-layer outside" style="filter: blur(6px) brightness(0.65); z-index: 0;"></div>
+                <div class="lens-frame" style="width: 90%;">
+                    <div id="bg-blurred-premium" class="bg-layer blurred"></div>
+                    <div id="bg-pattern-premium" class="bg-layer pattern"></div>
+                    <div id="bg-clear-premium" class="bg-layer clear"></div>
+                    
+                    <div id="marker-top-premium" class="target-marker text-[11px]" style="top: 15%;">원거리 (운전)</div>
+                    <div id="marker-mid-premium" class="target-marker text-[11px]" style="top: 52%;">중간거리 (PC)</div>
+                    <div id="marker-bot-premium" class="target-marker text-[11px]" style="top: 85%;">근거리 (독서)</div>
+                    
+                    <svg class="guide-svg absolute inset-0 w-full h-full z-[4] pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <polyline id="line-left-premium" class="guide-line" points="" />
+                        <polyline id="line-right-premium" class="guide-line" points="" />
+                    </svg>
+                    <div class="lens-glare"></div>
+                </div>
+            </div>
+            <div class="p-5 bg-white flex-1 flex flex-col">
+                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
+                    <span class="text-slate-500">원거리 시야폭</span>
+                    <span id="stat-top-premium" class="text-rose-600 font-black text-sm">0%</span>
+                </div>
+                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
+                    <span class="text-slate-500">중간거리 시야폭</span>
+                    <span id="stat-mid-premium" class="text-rose-600 font-black text-sm">0%</span>
+                </div>
+                <div class="flex justify-between items-center text-xs font-bold mb-4">
+                    <span class="text-slate-500">근거리 시야폭</span>
+                    <span id="stat-bot-premium" class="text-rose-600 font-black text-sm">0%</span>
+                </div>
+                <p class="text-[12px] text-slate-500 font-bold leading-relaxed break-keep mt-auto bg-rose-50 p-3 rounded-xl border border-rose-100">
+                    최신 양면 복합 설계 기술로 수차부를 주변부로 밀어내어 시야가 매우 쾌적합니다. 시선 이동 시 나타나는 울렁임 현상이 획기적으로 적습니다.
+                </p>
+            </div>
+        </div>
+
+        <!-- 고급형 -->
+        <div class="flex flex-col bg-white rounded-3xl shadow-sm border border-amber-200 overflow-hidden ring-1 ring-amber-300 shadow-amber-50 hover:shadow-md transition-all">
+            <div class="p-4 text-center bg-amber-50 border-b border-amber-100">
+                <div class="text-2xl mb-1">🥈</div>
+                <h3 class="font-black text-lg text-amber-800">고급형 <span class="text-sm text-amber-600 font-bold">(Advanced)</span></h3>
+                <p class="text-xs font-bold text-amber-700 mt-2 bg-white inline-block px-3 py-1 rounded-full border border-amber-200">30~50만 원대</p>
+            </div>
+            <div class="sim-viewport relative w-full h-[320px] bg-slate-200">
+                <div class="bg-layer outside" style="filter: blur(6px) brightness(0.65); z-index: 0;"></div>
+                <div class="lens-frame" style="width: 90%;">
+                    <div id="bg-blurred-advanced" class="bg-layer blurred"></div>
+                    <div id="bg-pattern-advanced" class="bg-layer pattern"></div>
+                    <div id="bg-clear-advanced" class="bg-layer clear"></div>
+                    
+                    <div id="marker-top-advanced" class="target-marker text-[11px]" style="top: 15%;">원거리 (운전)</div>
+                    <div id="marker-mid-advanced" class="target-marker text-[11px]" style="top: 52%;">중간거리 (PC)</div>
+                    <div id="marker-bot-advanced" class="target-marker text-[11px]" style="top: 85%;">근거리 (독서)</div>
+                    
+                    <svg class="guide-svg absolute inset-0 w-full h-full z-[4] pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <polyline id="line-left-advanced" class="guide-line" points="" />
+                        <polyline id="line-right-advanced" class="guide-line" points="" />
+                    </svg>
+                    <div class="lens-glare"></div>
+                </div>
+            </div>
+            <div class="p-5 bg-white flex-1 flex flex-col">
+                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
+                    <span class="text-slate-500">원거리 시야폭</span>
+                    <span id="stat-top-advanced" class="text-amber-600 font-black text-sm">0%</span>
+                </div>
+                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
+                    <span class="text-slate-500">중간거리 시야폭</span>
+                    <span id="stat-mid-advanced" class="text-amber-600 font-black text-sm">0%</span>
+                </div>
+                <div class="flex justify-between items-center text-xs font-bold mb-4">
+                    <span class="text-slate-500">근거리 시야폭</span>
+                    <span id="stat-bot-advanced" class="text-amber-600 font-black text-sm">0%</span>
+                </div>
+                <p class="text-[12px] text-slate-500 font-bold leading-relaxed break-keep mt-auto bg-amber-50 p-3 rounded-xl border border-amber-100">
+                    내면/양면 설계가 적용되어 왜곡을 줄인 베스트셀러입니다. 중간거리(PC) 시야가 확연히 넓어져 사무 업무가 한결 편안합니다.
+                </p>
+            </div>
+        </div>
+
+        <!-- 기본형 -->
+        <div class="flex flex-col bg-white rounded-3xl shadow-sm border border-sky-200 overflow-hidden ring-1 ring-sky-300 shadow-sky-50 hover:shadow-md transition-all">
+            <div class="p-4 text-center bg-sky-50 border-b border-sky-100">
+                <div class="text-2xl mb-1">🥉</div>
+                <h3 class="font-black text-lg text-sky-800">기본형 <span class="text-sm text-sky-600 font-bold">(Standard)</span></h3>
+                <p class="text-xs font-bold text-sky-700 mt-2 bg-white inline-block px-3 py-1 rounded-full border border-sky-200">10~20만 원대</p>
+            </div>
+            <div class="sim-viewport relative w-full h-[320px] bg-slate-200">
+                <div class="bg-layer outside" style="filter: blur(6px) brightness(0.65); z-index: 0;"></div>
+                <div class="lens-frame" style="width: 90%;">
+                    <div id="bg-blurred-basic" class="bg-layer blurred"></div>
+                    <div id="bg-pattern-basic" class="bg-layer pattern"></div>
+                    <div id="bg-clear-basic" class="bg-layer clear"></div>
+                    
+                    <div id="marker-top-basic" class="target-marker text-[11px]" style="top: 15%;">원거리 (운전)</div>
+                    <div id="marker-mid-basic" class="target-marker text-[11px]" style="top: 52%;">중간거리 (PC)</div>
+                    <div id="marker-bot-basic" class="target-marker text-[11px]" style="top: 85%;">근거리 (독서)</div>
+                    
+                    <svg class="guide-svg absolute inset-0 w-full h-full z-[4] pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <polyline id="line-left-basic" class="guide-line" points="" />
+                        <polyline id="line-right-basic" class="guide-line" points="" />
+                    </svg>
+                    <div class="lens-glare"></div>
+                </div>
+            </div>
+            <div class="p-5 bg-white flex-1 flex flex-col">
+                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
+                    <span class="text-slate-500">원거리 시야폭</span>
+                    <span id="stat-top-basic" class="text-sky-600 font-black text-sm">0%</span>
+                </div>
+                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
+                    <span class="text-slate-500">중간거리 시야폭</span>
+                    <span id="stat-mid-basic" class="text-sky-600 font-black text-sm">0%</span>
+                </div>
+                <div class="flex justify-between items-center text-xs font-bold mb-4">
+                    <span class="text-slate-500">근거리 시야폭</span>
+                    <span id="stat-bot-basic" class="text-sky-600 font-black text-sm">0%</span>
+                </div>
+                <p class="text-[12px] text-slate-500 font-bold leading-relaxed break-keep mt-auto bg-sky-50 p-3 rounded-xl border border-sky-100">
+                    외면 누진 설계 등 기본 기술이 적용된 렌즈입니다. 측면 수차부(왜곡 영역)가 넓어 고개 회전 등 초기 적응에 시간이 소요될 수 있습니다.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // 상태 관리
+    let currentAdd = 1.5;
+
+    // 렌즈 등급 데이터 (Top, Mid, Bot은 기준 시야폭 % / blur는 수차부 흐림 정도)
+    const tierData = {
+        basic: { 
+            top: 50, mid: 30, bot: 50, blur: 15, yMid: 60, power: 3.5, yEye: 5,
+            title: "🥉 기본형 렌즈 (Standard)", 
+            desc: "외면 누진 설계 등 기본 기술이 적용된 렌즈입니다.<br>측면 수차부(왜곡 영역)가 넓어 계단을 오르내릴 때나 운전 시 고개 회전이 많이 필요하며, 초기 적응에 시간이 다소 소요될 수 있습니다." 
+        },
+        advanced: { 
+            top: 65, mid: 48, bot: 66, blur: 10, yMid: 68, power: 4.8, yEye: 10,
+            title: "🥈 고급형 렌즈 (Advanced)", 
+            desc: "내면/양면 누진 설계가 적용되어 왜곡을 줄인 베스트셀러 등급입니다.<br>기본형에 비해 중간거리(PC 모니터) 시야가 확연히 넓어져 사무 업무나 일상생활에서 편안함을 느낄 수 있습니다." 
+        },
+        premium: { 
+            top: 72, mid: 58, bot: 76, blur: 5, yMid: 72, power: 5.5, yEye: 12,
+            title: "🥇 프리미엄 렌즈 (Premium)", 
+            desc: "최신 양면 복합 설계 기술로 수차부를 주변부로 밀어내어 시야가 매우 쾌적합니다.<br>시선 이동 시 나타나는 울렁임 현상이 획기적으로 적어 다초점 렌즈 실패 경험이 있는 분들께 적극 추천합니다." 
+        },
+        custom: { 
+            top: 85, mid: 70, bot: 88, blur: 3, yMid: 78, power: 6.5, yEye: 16,
+            title: "👑 개인맞춤형 렌즈 (Individual)", 
+            desc: "고객님의 착용 습관, 안경테 피팅 수치, 눈의 움직임(회선각)을 반영한 1:1 최고급 맞춤 설계입니다.<br>어떠한 도수와 환경에서도 가장 넓고 자연스러운 시야를 보장합니다." 
+        }
+    };
+
+    function setAdd(val) {
+        currentAdd = val;
+        document.querySelectorAll('.add-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        updateSimulator();
+    }
+
+    function updateSimulator() {
+        const tiers = ['custom', 'premium', 'advanced', 'basic'];
+        
+        tiers.forEach(tier => {
+            const data = tierData[tier];
+            
+            // 가입도(ADD)가 높을수록 시야폭 감소 페널티 적용
+            const addPenalty = (currentAdd - 1.0) * 12; // 0.5D 오를 때마다 6% 감소
+            
+            let mClear = Math.max(5, data.mid - addPenalty);
+            let bClear = Math.max(10, data.bot - addPenalty * 0.8);
+            let tClear = Math.max(20, data.top - addPenalty * 0.5); // 등급별 상단 폭 동적 할당
+
+            // 좁아지는 병목 지점(yMid)과 상단 곡률(power) 계산
+            let yMid = Math.max(38, data.yMid - (currentAdd - 1.0) * 4);
+            let power = Math.max(1.0, data.power - (currentAdd - 1.0) * 0.3);
+
+            // 백분율 기반 (50%가 중앙선) 좌우 X좌표 계산
+            const lTop = 50 - (tClear / 2);
+            const rTop = 50 + (tClear / 2);
+            const lMid = 50 - (mClear / 2);
+            const rMid = 50 + (mClear / 2);
+            const lBot = 50 - (bClear / 2);
+            const rBot = 50 + (bClear / 2);
+
+            // 단일 변곡점(S-curve) 나팔형 곡선 생성 함수
+            function getCurvePoints(xTop, xMid, xBot, curYMid, curPower) {
+                let pts = [];
+                let ptsSVG = [];
+
+                const addPoint = (x, y) => {
+                    pts.push({x, y});
+                    if (y >= 0 && y <= 100 && x > 0 && x < 100) {
+                        ptsSVG.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+                    }
+                };
+                
+                let yEyePoint = data.yEye; // 아이포인트 (원용부 최대 넓이 기준점)
+                
+                for (let y = -10; y <= 125; y += 2) {
+                    let x;
+                    if (y <= yEyePoint) {
+                        // 상단부: 위로 갈수록 둥글게 아랫방향으로 강하게 말려들어가는 형태
+                        let t = (yEyePoint - y) / 30; // 둥글게 말리는 범위 제어
+                        if(t < 0) t = 0; if(t > 1) t = 1;
+                        // 아랫방향으로 쳐지는 느낌을 강하게 주기 위해 곡률 지수(2.0)와 강도(0.9) 조정
+                        let ease = Math.pow(t, 2.0) * 0.9; 
+                        x = xTop + (xMid - xTop) * ease;
+                    } else if (y <= curYMid) {
+                        // 1. 원용부 -> 중간부(누진대): 둥글고 넓게 유지되다 하강
+                        let t = (y - yEyePoint) / (curYMid - yEyePoint); 
+                        if(t < 0) t = 0; if(t > 1) t = 1;
+                        let ease = Math.pow(Math.sin(t * Math.PI / 2), curPower);
+                        x = xTop + (xMid - xTop) * ease;
+                    } else {
+                        // 2. 중간부(누진대) -> 하단부(근용): 부드럽게 퍼짐
+                        let t = (y - curYMid) / (125 - curYMid);
+                        if(t < 0) t = 0; if(t > 1) t = 1;
+                        let ease = (1 - Math.cos(t * Math.PI)) / 2;
+                        x = xMid + (xBot - xMid) * ease;
+                    }
+                    addPoint(x, y);
+                }
+                return { pts, svg: ptsSVG.join(' ') };
+            }
+
+            const leftCurve = getCurvePoints(-25, lMid, lBot, yMid, power);
+            const rightCurve = getCurvePoints(125, rMid, rBot, yMid, power);
+
+            // 선명한 영역(가운데 터널)을 그리기 위한 폴리곤 계산
+            let clearPolygon = leftCurve.pts.map(p => `${p.x.toFixed(2)}% ${p.y.toFixed(2)}%`);
+            let rightReverse = [...rightCurve.pts].reverse(); // 우측 곡선은 아래에서 위로 연결
+            clearPolygon = clearPolygon.concat(rightReverse.map(p => `${p.x.toFixed(2)}% ${p.y.toFixed(2)}%`));
+            
+            // 명시역 배경 컷팅 적용
+            document.getElementById(`bg-clear-${tier}`).style.clipPath = `polygon(${clearPolygon.join(', ')})`;
+            
+            // 흐림 강도 설정
+            const blurValue = Math.min(20, data.blur + (currentAdd - 1.0) * 3);
+            document.getElementById(`bg-blurred-${tier}`).style.filter = `blur(${blurValue}px)`;
+
+            // 가이드라인 선 그리기 (SVG viewBox는 0~100)
+            document.getElementById(`line-left-${tier}`).setAttribute('points', leftCurve.svg);
+            document.getElementById(`line-right-${tier}`).setAttribute('points', rightCurve.svg);
+
+            // 가이드 텍스트 마커 위치 고정
+            document.getElementById(`marker-top-${tier}`).style.top = `15%`;
+            document.getElementById(`marker-mid-${tier}`).style.top = `52%`;
+            document.getElementById(`marker-bot-${tier}`).style.top = `85%`;
+
+            // 텍스트 및 스탯 업데이트
+            document.getElementById(`stat-top-${tier}`).innerText = Math.min(100, Math.round(tClear)) + '%';
+            document.getElementById(`stat-mid-${tier}`).innerText = Math.round(mClear) + '%';
+            document.getElementById(`stat-bot-${tier}`).innerText = Math.round(bClear) + '%';
+        });
+    }
+
+    // 초기 렌더링
+    window.onload = updateSimulator;
+</script>
+</body>
+</html>
