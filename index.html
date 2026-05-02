@@ -449,10 +449,10 @@
             </div>
         
             <div class="admin-section" style="background:#f0f7ff; border: 2px solid var(--accent);">
-                <h4>🖼️ 홍보 이미지 카드 관리 (이름/주소 수정)</h4>
+                <h4>🖼️ 홍보 이미지 / 시뮬레이터 관리</h4>
                 <div id="admin-image-list" style="max-height: 400px; overflow-y: auto; margin-bottom:15px;"></div>
                 
-                <button class="btn-ui" style="background:var(--accent); width:100%; padding:15px;" onclick="addNewImageCard()">+ 새 홍보 이미지 카드 추가</button>
+                <button class="btn-ui" style="background:var(--accent); width:100%; padding:15px;" onclick="addNewImageCard()">+ 새 이미지/시뮬레이터 카드 추가</button>
             </div>
 
             <div class="admin-section">
@@ -680,19 +680,6 @@
             });
         }
 
-        // 3. 홍보 이미지 데이터를 모음
-        images.forEach(img => { 
-            // 이미지의 tabId와 현재 관리자 창에서 선택한 탭Id가 같을 때만 목록에 추가합니다.
-            if(img && img.tabId === adminSelectedTabId) {
-                pool.push({
-                    id: img, 
-                    name: img.name || '새 홍보 이미지', 
-                    b: '[이미지]', 
-                    type: '광고'
-                }); 
-            }
-        });
-        
         // 정해진 순서(order)대로 정렬
         pool.sort((a, b) => {
             // order 값이 없으면 0으로 취급해서 정렬 꼬임 방지
@@ -705,7 +692,10 @@
         let html = '<div class="card-grid">';
         pool.forEach(item => {
             if(item.type === 'matrix') html += renderMatrixHtml(item);
-            else if(item.type === 'imageCard') html += renderImageCardHtml(item); // 이미지 전용
+            else if(item.type === 'imageCard') {
+                if(item.cardType === 'iframe') html += renderIframeCardHtml(item);
+                else html += renderImageCardHtml(item);
+            }
             else html += renderNormalHtml(item);
         });
         
@@ -719,6 +709,14 @@
         return `
         <div class="image-card">
             <img src="${img.url}" fetchpriority="high" decoding="async" style="width:100%; display:block; object-fit:contain;">
+        </div>`;
+    }
+
+    function renderIframeCardHtml(img) {
+        const h = img.height || 600;
+        return `
+        <div class="image-card iframe-card" style="grid-column: 1 / -1; width: 100%; margin: 10px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05); background: white;">
+                <iframe src="${img.url}" scrolling="no" style="width: 100%; height: ${h}px; border: none; display: block; overflow: hidden;"></iframe>
         </div>`;
     }
 
@@ -880,7 +878,7 @@
             
             if (Array.isArray(images)) {
                 images.forEach(img => {
-                    if(img.tabId === adminSelectedTabId) pool.push({id:img, name:img.name, b:'[이미지]', type:'홍보광고'});
+                    if(img.tabId === adminSelectedTabId) pool.push({id:img, name:img.name, b: img.cardType === 'iframe' ? '[시뮬레이터]' : '[이미지]', type:'홍보광고'});
                 });
             }
 
@@ -907,19 +905,33 @@
                         <button class="btn-small" style="background:var(--danger); padding:10px 15px;" 
                                 onclick="if(confirm('삭제하시겠습니까?')){ const dIdx = window.images.findIndex(x => x.id === '${img.id}'); if(dIdx > -1) window.images.splice(dIdx, 1); renderAdmin(); renderApp(); }">삭제</button>
                     </div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 2fr; gap:10px;">
                         <div>
-                            <div style="font-size:0.75em; color:#888; margin-bottom:3px;">출력될 탭 선택</div>
+                            <div style="font-size:0.75em; color:#888; margin-bottom:3px;">유형</div>
+                            <select onchange="const target = window.images.find(x => x.id === '${img.id}'); if(target) target.cardType = this.value; renderAdmin(); renderApp();" 
+                                    style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; background:#f9f9f9;">
+                                <option value="image" ${img.cardType !== 'iframe' ? 'selected' : ''}>이미지</option>
+                                <option value="iframe" ${img.cardType === 'iframe' ? 'selected' : ''}>시뮬레이터(iframe)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div style="font-size:0.75em; color:#888; margin-bottom:3px;">출력 탭</div>
                             <select onchange="const target = window.images.find(x => x.id === '${img.id}'); if(target) target.tabId = this.value; renderAdmin(); renderApp();" 
                                     style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; background:#f9f9f9;">
-                                <option value="">탭 미지정</option>
+                                <option value="">미지정</option>
                                 ${categories.map(c => `<option value="${c.id}" ${img.tabId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
                             </select>
                         </div>
                         <div>
-                            <div style="font-size:0.75em; color:#888; margin-bottom:3px;">이미지 주소(URL)</div>
+                            <div style="font-size:0.75em; color:#888; margin-bottom:3px;">세로 길이(px)</div>
+                            <input type="number" value="${img.height || 600}" 
+                                oninput="const target = window.images.find(x => x.id === '${img.id}'); if(target) target.height = this.value; renderApp();" 
+                                style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; ${img.cardType !== 'iframe' ? 'background:#eee; pointer-events:none;' : ''}" placeholder="600" ${img.cardType !== 'iframe' ? 'readonly' : ''}>
+                        </div>
+                        <div>
+                            <div style="font-size:0.75em; color:#888; margin-bottom:3px;">주소(URL)</div>
                             <input type="text" value="${img.url || ''}" 
-                                oninput="const target = window.images.find(x => x.id === '${img.id}'); if(target) target.url = this.value;" 
+                                oninput="const target = window.images.find(x => x.id === '${img.id}'); if(target) target.url = this.value; renderApp();" 
                                 style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;" placeholder="https://...">
                         </div>
                     </div>
@@ -1342,13 +1354,15 @@
             url: '', 
             tabId: adminSelectedTabId || (categories[1] ? categories[1].id : ''), 
             order: (images.length + 1) * 10,
+            cardType: 'image',
+            height: 600,
             targetAges: ['adult', 'student', 'senior'],
             targetIssues: ['none']
         });
         
         renderAdmin(); 
         renderApp();
-        alert("이미지 카드가 추가되었습니다. 목록에서 '출력될 탭'을 정하고 이름과 주소를 입력하세요.");
+        alert("카드가 추가되었습니다. 목록에서 출력할 탭과 유형을 정하고 주소를 입력하세요.");
     }
 
     // [비밀번호 확인 및 관리자창 열기]
