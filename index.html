@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>아이젠트리 충남도청점 V26.04.08</title>
+    <title>아이젠트리 충남도청점 V26.05.02</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -296,26 +296,56 @@
             header {
                 padding: 10px 20px !important;
                 height: auto;
+                padding: 8px 12px !important;
             }
 
             .top-controls {
                 flex-direction: column !important; /* 세로로 쌓기 */
                 align-items: flex-end !important;   /* 오른쪽 정렬 유지 */
                 gap: 8px !important;
+                flex-direction: row !important; /* 한 줄 유지 */
+                flex-wrap: nowrap !important;
+                gap: 6px !important;
             }
 
             .action-row {
                 justify-content: flex-end;
                 width: 100%;
+            .action-row, .selection-container {
+                width: auto !important;
+                gap: 6px !important;
             }
 
             .selection-container {
                 justify-content: flex-end;
                 width: 100%;
+            .btn-ui {
+                padding: 6px 10px !important;
+                font-size: 0.8em !important;
+                white-space: nowrap;
+            }
+
+            .control-group {
+                padding: 4px 8px !important;
+                gap: 4px !important;
+            }
+
+            .power-box-btn {
+                min-width: 50px !important;
+                padding: 4px 8px !important;
+                font-size: 0.85em !important;
+            }
+
+            .btn-admin-gear {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 1.1em !important;
             }
             
             /* 로고 크기 살짝 조절 */
             .logo-area h2 { font-size: 1.3em !important; }
+            .logo-area h2 { font-size: 1.1em !important; letter-spacing: -1px; white-space: nowrap; }
+            .logo-area span { display: none; } /* 공간 확보를 위해 카달로그 글씨 숨김 */
 
             /* 아이패드(태블릿)에서 탭이 더 많이 보이도록 여백/크기 다이어트 */
             .tabs-bar {
@@ -329,6 +359,20 @@
                 padding: 14px 22px !important;
                 font-size: 1.1em !important;
             }
+            
+            /* 아이패드 가격표 1줄 4개 강제 출력 및 크기 다이어트 최적화 */
+            .card-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+                column-gap: 8px !important;
+            }
+            .lens-card { font-size: 0.85em; }
+            .card-head { padding: 8px 10px !important; font-size: 1.05em !important; }
+            .lens-one-liner { padding: 6px 10px !important; font-size: 0.8em !important; margin: 5px !important; }
+            .card-table th, .card-table td { padding: 6px 4px !important; }
+            .col-idx { width: 55px !important; font-size: 0.9em !important; }
+            .col-price { padding-right: 5px !important; }
+            .p-off { font-size: 0.8em; }
+            .p-sale { font-size: 1.1em; }
         }
 
         /* 이미지가 표 사이에서 가로로 꽉 차게 나오도록 설정 */
@@ -363,16 +407,17 @@
                     <button id="sim-main-btn" class="btn-ui" style="background:#8e44ad; font-weight:bold;" onclick="toggleSimDropdown()">🎮 시뮬레이션</button>
                     <button id="calc-main-btn" class="btn-ui" style="background:#27ae60; font-weight:bold;" onclick="toggleCalcModal()">🧮 계산기</button>
                     <button id="filter-toggle-btn" class="btn-ui" style="background:#95a5a6;" onclick="togglePowerFilter()">🔍 필터 OFF</button>
-                    <button class="btn-ui" style="background:#e67e22; margin-left:5px;" onclick="resetAllFilters()">🔄 </button>
                 </div>
 
                 <div class="selection-container">
                     <div class="inputs-row">
-                        <div class="control-group">
-                            <div id="disp-age" class="power-box-btn" onclick="openGeneralPicker('age')">대상: 전체</div>
-                            <div id="disp-issue" class="power-box-btn" onclick="openGeneralPicker('issue')">증상: 없음</div>
-                            <div id="disp-s" class="power-box-btn" onclick="openPowerPicker('s')">S: 0.00</div>
-                            <div id="disp-c" class="power-box-btn" onclick="openPowerPicker('c')">C: 0.00</div>
+                        <div class="control-group" style="width: 100%; display: flex;">
+                            <!-- 통합된 고객 맞춤 설정 버튼 -->
+                            <button id="main-filter-btn" class="power-box-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border: 2px solid var(--accent); color: var(--primary);" onclick="startFilterFlow()">
+                                🎯 고객 맞춤
+                                <span id="main-filter-summary" style="font-size: 0.85em; color: #888; font-weight: normal;">(전체 / 없음 / S: 0.00 / C: 0.00)</span>
+                            </button>
+                            <button class="btn-ui" style="background:#e67e22; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; height: 100%;" onclick="resetAllFilters()" title="전체 조건 초기화">🔄</button>
                         </div>
                     </div>
                     <div class="icons-row">
@@ -387,11 +432,11 @@
 
     <div id="ui-overlay" onclick="closeAllModals()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1998; touch-action:none;"></div>
     
-    <div id="picker-overlay" onclick="this.style.display='none'">
+    <div id="picker-overlay" onclick="this.style.display='none'; isFilterFlow=false;">
         <div class="picker-container" onclick="event.stopPropagation()">
             <div id="picker-title" style="font-size:1.7em; font-weight:900; margin-bottom:25px; text-align:center; color:var(--primary); border-bottom:4px solid var(--accent); padding-bottom:15px;">선택</div>
             <div class="picker-grid" id="picker-grid-content"></div>
-            <div style="margin-top:35px; text-align:center;"><button class="btn-ui" style="background:var(--primary); padding:20px 100px; font-size:1.2em;" onclick="document.getElementById('picker-overlay').style.display='none'">닫기</button></div>
+            <div style="margin-top:35px; text-align:center;"><button class="btn-ui" style="background:var(--primary); padding:20px 100px; font-size:1.2em;" onclick="document.getElementById('picker-overlay').style.display='none'; isFilterFlow=false;">닫기</button></div>
         </div>
     </div>
 
@@ -543,6 +588,7 @@
     let adminSelectedTabId = ''; // 에러의 원인이었던 변수를 위로 올렸습니다.
     let userPower = {rs:0, rc:0, ls:0, lc:0};
     let selectedAge = 'none', selectedIssue = 'none', isFilterActive = false, openBrandIndex = null, editingMatrix = null;
+    let isFilterFlow = false; // 연쇄 선택 모드 상태값
     const fixedIndices = ['1.56', '1.60', '1.67', '1.74'];
 
     // 2. 서버에서 데이터를 가져오는 함수
@@ -609,13 +655,25 @@
         selectedIssue = 'none';
         userPower = {rs:0, rc:0, ls:0, lc:0};
         
-        document.getElementById('disp-age').innerText = "대상: 전체";
-        document.getElementById('disp-issue').innerText = "증상: 없음";
-        document.getElementById('disp-s').innerText = "S: 0.00";
-        document.getElementById('disp-c').innerText = "C: 0.00";
+        updateMainFilterSummary();
 
         renderApp();
         closeResetModal();
+    }
+
+    function startFilterFlow() {
+        isFilterFlow = true;
+        openGeneralPicker('age');
+    }
+
+    function updateMainFilterSummary() {
+        const ageText = selectedAge === 'none' ? '전체' : (selectedAge === 'student' ? '학생' : (selectedAge === 'adult' ? '성인' : '시니어'));
+        const issueText = selectedIssue === 'none' ? '없음' : (issues.find(i => i.id === selectedIssue)?.name || '없음');
+        const sText = userPower.rs > 0 ? "+" + userPower.rs.toFixed(2) : userPower.rs.toFixed(2);
+        const cText = userPower.rc > 0 ? "+" + userPower.rc.toFixed(2) : userPower.rc.toFixed(2);
+        
+        const summaryEl = document.getElementById('main-filter-summary');
+        if(summaryEl) summaryEl.innerText = `(${ageText} / ${issueText} / S: ${sText} / C: ${cText})`;
     }
 
     function moveUnified(idx, dir) {
@@ -1041,10 +1099,10 @@
         let min, max;
         // 's'는 구면, 'c'는 난시
         if(type === 's') { 
-            title.innerText = "구면 도수(SPH) 선택 (+8.00 ~ -15.00)"; 
+            title.innerText = "3. 구면 도수(SPH) 선택 (+8.00 ~ -15.00)"; 
             min = -15; max = 8; 
         } else { 
-            title.innerText = "난시 도수(CYL) 선택 (0.00 ~ -7.00)"; 
+            title.innerText = "4. 난시 도수(CYL) 선택 (0.00 ~ -7.00)"; 
             min = -7; max = 0; 
         }
         
@@ -1067,9 +1125,19 @@
                     userPower.rc = numVal; 
                     userPower.lc = numVal;
                 }
-                document.getElementById('disp-'+type).innerText = `${prefix}: ${(i>0?"+":"")+val}`; 
-                overlay.style.display='none'; 
+                updateMainFilterSummary();
                 renderApp(); 
+
+                if (isFilterFlow) {
+                    if (type === 's') {
+                        openPowerPicker('c');
+                    } else {
+                        isFilterFlow = false; // 플로우 종료
+                        overlay.style.display='none';
+                    }
+                } else {
+                    overlay.style.display='none';
+                }
             };
             grid.appendChild(btn);
         }
@@ -1083,20 +1151,25 @@
         const opts = (mode === 'age') 
             ? [{id:'none', n:'전체'}, {id:'student', n:'학생'}, {id:'adult', n:'성인'}, {id:'senior', n:'시니어'}] 
             : issues;
-        title.innerText = (mode === 'age') ? "상담 대상 연령 선택" : "불편 증상 선택";
+        title.innerText = (mode === 'age') ? "1. 상담 대상 연령 선택" : "2. 불편 증상 선택";
         opts.forEach(o => {
             const btn = document.createElement('div'); btn.className = `pick-btn ${ (mode==='age' ? selectedAge===o.id : selectedIssue===o.id) ? 'selected' : '' }`; 
             btn.innerText = o.name || o.n;
         btn.onclick = () => {
                 if(mode==='age') {
                     selectedAge = o.id;
-                    document.getElementById('disp-age').innerText = `대상: ${o.n}`;
                 } else {
                     selectedIssue = o.id;
-                    document.getElementById('disp-issue').innerText = `증상: ${o.name}`;
                 }
-                overlay.style.display='none'; 
+                updateMainFilterSummary();
                 renderApp();
+
+                if (isFilterFlow) {
+                    if (mode === 'age') openGeneralPicker('issue');
+                    else if (mode === 'issue') openPowerPicker('s');
+                } else {
+                    overlay.style.display='none'; 
+                }
             };
             grid.appendChild(btn);
         });
@@ -1251,7 +1324,7 @@
     }
 
     // [기타 기능들]
-    function togglePowerFilter() { isFilterActive = !isFilterActive; const btn = document.getElementById('filter-toggle-btn'); if(isFilterActive) { document.body.classList.remove('filter-off'); btn.innerText = "⚡ 필터 작동중"; btn.style.background = "var(--danger)"; } else { document.body.classList.add('filter-off'); btn.innerText = "🔍 도수 적용 안함"; btn.style.background = "#95a5a6"; } }
+    function togglePowerFilter() { isFilterActive = !isFilterActive; const btn = document.getElementById('filter-toggle-btn'); if(isFilterActive) { document.body.classList.remove('filter-off'); btn.innerText = "⚡ 필터 ON"; btn.style.background = "var(--danger)"; } else { document.body.classList.add('filter-off'); btn.innerText = "🔍 필터 OFF"; btn.style.background = "#95a5a6"; } }
     function secureAdminOpen() { const pw = prompt("비밀번호 입력"); if(pw === "1111") toggleAdmin(); }
     function toggleAdmin() { const p = document.getElementById('admin-panel'); p.style.display = (p.style.display==='block'?'none':'block'); if(p.style.display==='block') renderAdmin(); }
     function closeAllModals() { document.querySelectorAll('.admin-panel, #matrix-modal, #picker-overlay, #excel-modal').forEach(el=>el.style.display='none'); document.getElementById('ui-overlay').style.display='none'; closeSimulator(); closeCalcModal(); document.body.classList.remove('modal-open'); }
