@@ -85,7 +85,7 @@
         }
 
         .add-btn {
-            padding: 8px 16px; border-radius: 20px; font-weight: 800; font-size: 14px;
+            padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 13px;
             border: 2px solid #cbd5e1; color: #64748b; transition: 0.2s; cursor: pointer;
         }
         .add-btn.active { background: #334155; color: white; border-color: #334155; }
@@ -98,45 +98,40 @@
         }
     </style>
 </head>
-<body class="p-4 md:p-8 flex flex-col min-h-screen">
+<body class="p-2 md:p-4 flex flex-col min-h-screen">
 
-<div class="max-w-[1600px] mx-auto w-full space-y-6">
+<div class="max-w-[1600px] mx-auto w-full space-y-3">
     
-    <!-- 헤더 -->
-    <div class="text-center space-y-2">
-        <h1 class="text-3xl md:text-4xl font-black text-slate-800">💎 누진다초점 등급별 시야 시뮬레이터</h1>
-        <p class="text-slate-500 font-bold">렌즈 설계와 가입도(도수)에 따른 선명한 시야(명시역)의 차이를 확인하세요.</p>
-    </div>
-
-    <!-- 상단 컨트롤: 가입도 선택 -->
-    <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
-            <span class="text-2xl">👀</span>
-            <div>
-                <h3 class="font-black text-slate-700">고객 가입도(ADD) 설정</h3>
-                <p class="text-[12px] text-slate-500 font-bold">노안 진행도가 높을수록 기본 시야폭이 좁아집니다.</p>
-            </div>
+    <!-- 상단 통합 헤더 & 컨트롤 -->
+    <div class="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col xl:flex-row items-center justify-between gap-3">
+        <div class="flex flex-col items-center xl:items-start">
+            <h1 class="text-lg md:text-xl font-black text-slate-800 flex items-center"><span class="mr-2">💎</span> 누진다초점 등급별 시야 시뮬레이터</h1>
         </div>
-        <div class="flex flex-wrap justify-center gap-2" id="add-controls">
-            <button class="add-btn" onclick="setAdd(1.0)">+1.00 D</button>
-            <button class="add-btn active" onclick="setAdd(1.5)">+1.50 D</button>
-            <button class="add-btn" onclick="setAdd(2.0)">+2.00 D</button>
-            <button class="add-btn" onclick="setAdd(2.5)">+2.50 D</button>
-            <button class="add-btn" onclick="setAdd(3.0)">+3.00 D</button>
+        <div class="flex items-center gap-3 shrink-0">
+            <button id="photo-toggle-btn" class="add-btn bg-slate-50 hover:bg-slate-200" onclick="togglePhotochromic()">☀️ 변색 OFF</button>
+            <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100">
+                <span class="text-xs font-black text-slate-600 px-2 hidden md:block">가입도(ADD)</span>
+                <div class="flex gap-1" id="add-controls">
+                    <button class="add-btn" onclick="setAdd(1.0)">+1.00</button>
+                    <button class="add-btn active" onclick="setAdd(1.5)">+1.50</button>
+                    <button class="add-btn" onclick="setAdd(2.0)">+2.00</button>
+                    <button class="add-btn" onclick="setAdd(2.5)">+2.50</button>
+                    <button class="add-btn" onclick="setAdd(3.0)">+3.00</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- 4종 비교 그리드 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6">
+    <div class="grid grid-cols-4 gap-2 md:gap-3">
         
         <!-- 개인맞춤 -->
-        <div class="flex flex-col bg-slate-800 rounded-3xl shadow-lg border border-slate-700 overflow-hidden text-white">
-            <div class="p-4 text-center bg-slate-900 border-b border-slate-700">
-                <div class="text-2xl mb-1">👑</div>
-                <h3 class="font-black text-lg text-yellow-400">개인맞춤 <span class="text-sm text-yellow-600 font-bold">(Individual)</span></h3>
-                <p class="text-xs font-bold text-yellow-900 mt-2 bg-yellow-400 inline-block px-3 py-1 rounded-full">100만 원 이상</p>
+        <div class="flex flex-col bg-slate-800 rounded-2xl shadow-lg border border-slate-700 overflow-hidden text-white">
+            <div class="p-3 flex items-center justify-center gap-2 bg-slate-900 border-b border-slate-700">
+                <div class="text-xl">👑</div>
+                <h3 class="font-black text-base text-yellow-400">개인맞춤 <span class="text-xs text-yellow-600 font-bold">(Individual)</span></h3>
             </div>
-            <div class="sim-viewport relative w-full h-[320px] bg-slate-200">
+            <div class="sim-viewport relative w-full aspect-[4/3] bg-slate-200">
                 <div class="bg-layer outside" style="filter: blur(6px) brightness(0.65); z-index: 0;"></div>
                 <div class="lens-frame" style="width: 90%;">
                     <div id="bg-blurred-custom" class="bg-layer blurred"></div>
@@ -151,36 +146,27 @@
                         <polyline id="line-left-custom" class="guide-line" points="" />
                         <polyline id="line-right-custom" class="guide-line" points="" />
                     </svg>
+                    <div class="photochromic-layer absolute inset-0 bg-slate-800 mix-blend-multiply opacity-0 transition-opacity duration-1000 z-[6] pointer-events-none"></div>
                     <div class="lens-glare"></div>
                 </div>
             </div>
-            <div class="p-5 bg-slate-800 flex-1 flex flex-col">
-                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-700 pb-2 mb-2">
-                    <span class="text-slate-400">원거리 시야폭</span>
-                    <span id="stat-top-custom" class="text-yellow-400 font-black text-sm">0%</span>
+            <div class="p-3 bg-slate-800 flex-1 flex flex-col">
+                <div class="text-center text-xs font-bold text-slate-400 mb-2">
+                    시야폭 (원/중/근) : <span id="stat-top-custom" class="text-yellow-400 font-black">0%</span> / <span id="stat-mid-custom" class="text-yellow-400 font-black">0%</span> / <span id="stat-bot-custom" class="text-yellow-400 font-black">0%</span>
                 </div>
-                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-700 pb-2 mb-2">
-                    <span class="text-slate-400">중간거리 시야폭</span>
-                    <span id="stat-mid-custom" class="text-yellow-400 font-black text-sm">0%</span>
-                </div>
-                <div class="flex justify-between items-center text-xs font-bold mb-4">
-                    <span class="text-slate-400">근거리 시야폭</span>
-                    <span id="stat-bot-custom" class="text-yellow-400 font-black text-sm">0%</span>
-                </div>
-                <p class="text-[12px] text-slate-300 font-bold leading-relaxed break-keep mt-auto bg-slate-900 p-3 rounded-xl border border-slate-700">
-                    고객님의 착용 습관, 안경테 피팅 수치, 눈의 움직임(회선각)을 반영한 1:1 최고급 맞춤 설계입니다. 어떠한 환경에서도 가장 넓고 자연스러운 시야를 보장합니다.
+                <p class="text-[11px] text-slate-300 font-bold leading-snug break-keep mt-auto bg-slate-900 p-2.5 rounded-lg border border-slate-700">
+                    고객님의 착용 습관, 안경테 피팅 수치를 반영한 1:1 최고급 맞춤 설계입니다. 어떠한 환경에서도 가장 넓은 시야를 보장합니다.
                 </p>
             </div>
         </div>
 
         <!-- 프리미엄 -->
-        <div class="flex flex-col bg-white rounded-3xl shadow-sm border border-rose-200 overflow-hidden ring-2 ring-rose-400 shadow-rose-100 hover:shadow-md transition-all">
-            <div class="p-4 text-center bg-rose-50 border-b border-rose-100">
-                <div class="text-2xl mb-1">🥇</div>
-                <h3 class="font-black text-lg text-rose-800">프리미엄 <span class="text-sm text-rose-500 font-bold">(Premium)</span></h3>
-                <p class="text-xs font-bold text-rose-600 mt-2 bg-white inline-block px-3 py-1 rounded-full border border-rose-200">60~90만 원대</p>
+        <div class="flex flex-col bg-white rounded-2xl shadow-sm border border-rose-200 overflow-hidden ring-2 ring-rose-400 shadow-rose-100 hover:shadow-md transition-all">
+            <div class="p-3 flex items-center justify-center gap-2 bg-rose-50 border-b border-rose-100">
+                <div class="text-xl">🥇</div>
+                <h3 class="font-black text-base text-rose-800">프리미엄 <span class="text-xs text-rose-500 font-bold">(Premium)</span></h3>
             </div>
-            <div class="sim-viewport relative w-full h-[320px] bg-slate-200">
+            <div class="sim-viewport relative w-full aspect-[4/3] bg-slate-200">
                 <div class="bg-layer outside" style="filter: blur(6px) brightness(0.65); z-index: 0;"></div>
                 <div class="lens-frame" style="width: 90%;">
                     <div id="bg-blurred-premium" class="bg-layer blurred"></div>
@@ -195,36 +181,27 @@
                         <polyline id="line-left-premium" class="guide-line" points="" />
                         <polyline id="line-right-premium" class="guide-line" points="" />
                     </svg>
+                    <div class="photochromic-layer absolute inset-0 bg-slate-800 mix-blend-multiply opacity-0 transition-opacity duration-1000 z-[6] pointer-events-none"></div>
                     <div class="lens-glare"></div>
                 </div>
             </div>
-            <div class="p-5 bg-white flex-1 flex flex-col">
-                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
-                    <span class="text-slate-500">원거리 시야폭</span>
-                    <span id="stat-top-premium" class="text-rose-600 font-black text-sm">0%</span>
+            <div class="p-3 bg-white flex-1 flex flex-col">
+                <div class="text-center text-xs font-bold text-slate-500 mb-2">
+                    시야폭 (원/중/근) : <span id="stat-top-premium" class="text-rose-600 font-black">0%</span> / <span id="stat-mid-premium" class="text-rose-600 font-black">0%</span> / <span id="stat-bot-premium" class="text-rose-600 font-black">0%</span>
                 </div>
-                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
-                    <span class="text-slate-500">중간거리 시야폭</span>
-                    <span id="stat-mid-premium" class="text-rose-600 font-black text-sm">0%</span>
-                </div>
-                <div class="flex justify-between items-center text-xs font-bold mb-4">
-                    <span class="text-slate-500">근거리 시야폭</span>
-                    <span id="stat-bot-premium" class="text-rose-600 font-black text-sm">0%</span>
-                </div>
-                <p class="text-[12px] text-slate-500 font-bold leading-relaxed break-keep mt-auto bg-rose-50 p-3 rounded-xl border border-rose-100">
+                <p class="text-[11px] text-slate-600 font-bold leading-snug break-keep mt-auto bg-rose-50 p-2.5 rounded-lg border border-rose-100">
                     최신 양면 복합 설계 기술로 수차부를 주변부로 밀어내어 시야가 매우 쾌적합니다. 시선 이동 시 나타나는 울렁임 현상이 획기적으로 적습니다.
                 </p>
             </div>
         </div>
 
         <!-- 고급형 -->
-        <div class="flex flex-col bg-white rounded-3xl shadow-sm border border-amber-200 overflow-hidden ring-1 ring-amber-300 shadow-amber-50 hover:shadow-md transition-all">
-            <div class="p-4 text-center bg-amber-50 border-b border-amber-100">
-                <div class="text-2xl mb-1">🥈</div>
-                <h3 class="font-black text-lg text-amber-800">고급형 <span class="text-sm text-amber-600 font-bold">(Advanced)</span></h3>
-                <p class="text-xs font-bold text-amber-700 mt-2 bg-white inline-block px-3 py-1 rounded-full border border-amber-200">30~50만 원대</p>
+        <div class="flex flex-col bg-white rounded-2xl shadow-sm border border-amber-200 overflow-hidden ring-1 ring-amber-300 shadow-amber-50 hover:shadow-md transition-all">
+            <div class="p-3 flex items-center justify-center gap-2 bg-amber-50 border-b border-amber-100">
+                <div class="text-xl">🥈</div>
+                <h3 class="font-black text-base text-amber-800">고급형 <span class="text-xs text-amber-600 font-bold">(Advanced)</span></h3>
             </div>
-            <div class="sim-viewport relative w-full h-[320px] bg-slate-200">
+            <div class="sim-viewport relative w-full aspect-[4/3] bg-slate-200">
                 <div class="bg-layer outside" style="filter: blur(6px) brightness(0.65); z-index: 0;"></div>
                 <div class="lens-frame" style="width: 90%;">
                     <div id="bg-blurred-advanced" class="bg-layer blurred"></div>
@@ -239,36 +216,27 @@
                         <polyline id="line-left-advanced" class="guide-line" points="" />
                         <polyline id="line-right-advanced" class="guide-line" points="" />
                     </svg>
+                    <div class="photochromic-layer absolute inset-0 bg-slate-800 mix-blend-multiply opacity-0 transition-opacity duration-1000 z-[6] pointer-events-none"></div>
                     <div class="lens-glare"></div>
                 </div>
             </div>
-            <div class="p-5 bg-white flex-1 flex flex-col">
-                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
-                    <span class="text-slate-500">원거리 시야폭</span>
-                    <span id="stat-top-advanced" class="text-amber-600 font-black text-sm">0%</span>
+            <div class="p-3 bg-white flex-1 flex flex-col">
+                <div class="text-center text-xs font-bold text-slate-500 mb-2">
+                    시야폭 (원/중/근) : <span id="stat-top-advanced" class="text-amber-600 font-black">0%</span> / <span id="stat-mid-advanced" class="text-amber-600 font-black">0%</span> / <span id="stat-bot-advanced" class="text-amber-600 font-black">0%</span>
                 </div>
-                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
-                    <span class="text-slate-500">중간거리 시야폭</span>
-                    <span id="stat-mid-advanced" class="text-amber-600 font-black text-sm">0%</span>
-                </div>
-                <div class="flex justify-between items-center text-xs font-bold mb-4">
-                    <span class="text-slate-500">근거리 시야폭</span>
-                    <span id="stat-bot-advanced" class="text-amber-600 font-black text-sm">0%</span>
-                </div>
-                <p class="text-[12px] text-slate-500 font-bold leading-relaxed break-keep mt-auto bg-amber-50 p-3 rounded-xl border border-amber-100">
+                <p class="text-[11px] text-slate-600 font-bold leading-snug break-keep mt-auto bg-amber-50 p-2.5 rounded-lg border border-amber-100">
                     내면/양면 설계가 적용되어 왜곡을 줄인 베스트셀러입니다. 중간거리(PC) 시야가 확연히 넓어져 사무 업무가 한결 편안합니다.
                 </p>
             </div>
         </div>
 
         <!-- 기본형 -->
-        <div class="flex flex-col bg-white rounded-3xl shadow-sm border border-sky-200 overflow-hidden ring-1 ring-sky-300 shadow-sky-50 hover:shadow-md transition-all">
-            <div class="p-4 text-center bg-sky-50 border-b border-sky-100">
-                <div class="text-2xl mb-1">🥉</div>
-                <h3 class="font-black text-lg text-sky-800">기본형 <span class="text-sm text-sky-600 font-bold">(Standard)</span></h3>
-                <p class="text-xs font-bold text-sky-700 mt-2 bg-white inline-block px-3 py-1 rounded-full border border-sky-200">10~20만 원대</p>
+        <div class="flex flex-col bg-white rounded-2xl shadow-sm border border-sky-200 overflow-hidden ring-1 ring-sky-300 shadow-sky-50 hover:shadow-md transition-all">
+            <div class="p-3 flex items-center justify-center gap-2 bg-sky-50 border-b border-sky-100">
+                <div class="text-xl">🥉</div>
+                <h3 class="font-black text-base text-sky-800">기본형 <span class="text-xs text-sky-600 font-bold">(Standard)</span></h3>
             </div>
-            <div class="sim-viewport relative w-full h-[320px] bg-slate-200">
+            <div class="sim-viewport relative w-full aspect-[4/3] bg-slate-200">
                 <div class="bg-layer outside" style="filter: blur(6px) brightness(0.65); z-index: 0;"></div>
                 <div class="lens-frame" style="width: 90%;">
                     <div id="bg-blurred-basic" class="bg-layer blurred"></div>
@@ -283,23 +251,15 @@
                         <polyline id="line-left-basic" class="guide-line" points="" />
                         <polyline id="line-right-basic" class="guide-line" points="" />
                     </svg>
+                    <div class="photochromic-layer absolute inset-0 bg-slate-800 mix-blend-multiply opacity-0 transition-opacity duration-1000 z-[6] pointer-events-none"></div>
                     <div class="lens-glare"></div>
                 </div>
             </div>
-            <div class="p-5 bg-white flex-1 flex flex-col">
-                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
-                    <span class="text-slate-500">원거리 시야폭</span>
-                    <span id="stat-top-basic" class="text-sky-600 font-black text-sm">0%</span>
+            <div class="p-3 bg-white flex-1 flex flex-col">
+                <div class="text-center text-xs font-bold text-slate-500 mb-2">
+                    시야폭 (원/중/근) : <span id="stat-top-basic" class="text-sky-600 font-black">0%</span> / <span id="stat-mid-basic" class="text-sky-600 font-black">0%</span> / <span id="stat-bot-basic" class="text-sky-600 font-black">0%</span>
                 </div>
-                <div class="flex justify-between items-center text-xs font-bold border-b border-slate-100 pb-2 mb-2">
-                    <span class="text-slate-500">중간거리 시야폭</span>
-                    <span id="stat-mid-basic" class="text-sky-600 font-black text-sm">0%</span>
-                </div>
-                <div class="flex justify-between items-center text-xs font-bold mb-4">
-                    <span class="text-slate-500">근거리 시야폭</span>
-                    <span id="stat-bot-basic" class="text-sky-600 font-black text-sm">0%</span>
-                </div>
-                <p class="text-[12px] text-slate-500 font-bold leading-relaxed break-keep mt-auto bg-sky-50 p-3 rounded-xl border border-sky-100">
+                <p class="text-[11px] text-slate-600 font-bold leading-snug break-keep mt-auto bg-sky-50 p-2.5 rounded-lg border border-sky-100">
                     외면 누진 설계 등 기본 기술이 적용된 렌즈입니다. 측면 수차부(왜곡 영역)가 넓어 고개 회전 등 초기 적응에 시간이 소요될 수 있습니다.
                 </p>
             </div>
@@ -312,6 +272,41 @@
 <script>
     // 상태 관리
     let currentAdd = 1.5;
+    let isPhotochromic = false;
+    let photoTimer = null;
+
+    function togglePhotochromic() {
+        isPhotochromic = !isPhotochromic;
+        const btn = document.getElementById('photo-toggle-btn');
+        const layers = document.querySelectorAll('.photochromic-layer');
+        
+        // 기존 타이머가 작동 중이면 초기화
+        if (photoTimer) {
+            clearTimeout(photoTimer);
+            photoTimer = null;
+        }
+
+        if (isPhotochromic) {
+            btn.innerHTML = '🕶️ 변색 ON';
+            btn.classList.add('active');
+            layers.forEach(l => {
+                l.classList.remove('opacity-0');
+                l.classList.add('opacity-75');
+            });
+            
+            // 1분(60000ms) 뒤에 자동으로 변색 끄기
+            photoTimer = setTimeout(() => {
+                if(isPhotochromic) togglePhotochromic();
+            }, 60000);
+        } else {
+            btn.innerHTML = '☀️ 변색 OFF';
+            btn.classList.remove('active');
+            layers.forEach(l => {
+                l.classList.add('opacity-0');
+                l.classList.remove('opacity-75');
+            });
+        }
+    }
 
     // 렌즈 등급 데이터 (Top, Mid, Bot은 기준 시야폭 % / blur는 수차부 흐림 정도)
     const tierData = {
