@@ -1,0 +1,10 @@
+﻿v4 시뮬레이션에 쓴 무료 이미지 (상업적 이용 가능, 출처 표기는 필수가 아니지만 기록해 둡니다)
+
+street.jpg  — Unsplash 사진 (photo-1759802524179-5c2f12ad199b, 상점가 아케이드). https://unsplash.com/ko/photos/BmozcR9Q9Hw
+              Unsplash License: https://unsplash.com/license
+sea.jpg     — Unsplash 사진 (photo-1751309245237-aa8b886158bf, 햇빛에 반짝이는 바다). https://unsplash.com/ko/photos/e3CFD94Fq8A
+              Unsplash License: https://unsplash.com/license
+선글라스 프레임은 직접 그린 SVG입니다 (sim_extra.js).
+
+water.jpg   — Unsplash 사진 (photo-1785329012416-1cd8d4759685, 맑은 청록색 바닷가 · 편광 시연). https://unsplash.com/ko/photos/QV3hU90cJkM
+              Unsplash License: https://unsplash.com/license
