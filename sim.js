@@ -383,10 +383,10 @@
   Sim.addMax = s => { const n = nums(s).map(v => v > 10 ? v / 100 : v); return n.length ? Math.max(...n) : null; };
   // 4단계 등급: 선명한 영역의 넓이와 가장자리 흐림 정도의 기본값 (열에 view 점수를 직접 넣으면 그 값이 우선)
   Sim.TIERS = [
-    {id: 1, name: '최고급형', desc: '시야가 가장 넓고 가장자리 흐림이 가장 적어요', far: 92, mid: 88, near: 92, side: 90},
-    {id: 2, name: '고급형', desc: '넓고 안정적인 시야', far: 80, mid: 74, near: 80, side: 76},
-    {id: 3, name: '보급형', desc: '일상 생활에 균형 잡힌 시야', far: 66, mid: 60, near: 66, side: 58},
-    {id: 4, name: '기본형', desc: '기본에 충실한 합리적인 선택', far: 52, mid: 44, near: 52, side: 42}
+    {id: 1, name: '최고급형', desc: '시야가 가장 넓고 가장자리 흐림이 가장 적어요', far: 97, mid: 97, near: 97, side: 96},
+    {id: 2, name: '고급형', desc: '넓고 안정적인 시야', far: 85, mid: 80, near: 86, side: 80},
+    {id: 3, name: '보급형', desc: '일상 생활에 균형 잡힌 시야', far: 72, mid: 64, near: 74, side: 66},
+    {id: 4, name: '기본형', desc: '기본에 충실한 합리적인 선택', far: 58, mid: 50, near: 60, side: 52}
   ];
   Sim.progScores = (col, tier) => {
     const t = Sim.TIERS.find(x => x.id === Number(tier)) || Sim.TIERS[2], v = (col && col.view) || {};
@@ -395,26 +395,56 @@
   };
   // 위: 먼 곳(간판) · 가운데: 중간 거리(모니터) · 아래: 가까운 곳(글씨) — 440×440
   function progScene() {
-    const lines = Array.from({length: 6}, (_, i) => `<rect x="${84 + (i % 2) * 6}" y="${346 + i * 14}" width="${i % 3 === 2 ? 190 : 250}" height="5" rx="2.5" fill="#6b7280"/>`).join('');
-    return `<defs><linearGradient id="pgsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ccaf0"/><stop offset="1" stop-color="#f3ecdc"/></linearGradient></defs>
-      <rect width="440" height="440" fill="#f4efe4"/><rect width="440" height="150" fill="url(#pgsky)"/>
-      <rect x="0" y="62" width="70" height="90" fill="#9fb0c2"/><rect x="370" y="46" width="70" height="106" fill="#b8c2cf"/>
-      <rect x="92" y="30" width="256" height="82" rx="8" fill="#0f1c2e"/><text x="220" y="76" font-size="34" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="3" font-family="sans-serif">EYEGENTRY</text>
-      <text x="220" y="100" font-size="13" font-weight="700" fill="#9fb3cc" text-anchor="middle" font-family="sans-serif">아이젠트리 안경원</text>
-      <rect x="60" y="164" width="320" height="118" rx="8" fill="#1f2937"/><rect x="68" y="172" width="304" height="102" rx="4" fill="#fff"/>
-      <rect x="80" y="184" width="120" height="10" rx="3" fill="#0b6b7e"/><rect x="80" y="204" width="200" height="6" rx="3" fill="#9aa1ad"/><rect x="80" y="218" width="170" height="6" rx="3" fill="#9aa1ad"/>
-      <rect x="290" y="184" width="68" height="76" rx="4" fill="#cfe4ea"/><rect x="80" y="238" width="60" height="22" rx="4" fill="#d92d20"/>
-      <rect x="0" y="288" width="440" height="152" fill="#e9dfc9"/><rect x="60" y="300" width="320" height="140" rx="6" fill="#fffdf7" stroke="#d5c9ad" stroke-width="2"/>
-      <text x="84" y="334" font-size="20" font-weight="800" fill="#15171c" font-family="sans-serif">시력검사 · 안경 · 렌즈</text>${lines}`;
-  }
-  function ensureProgScene() {
+    let bld = '', win = '';
+    [[0, 70, 92], [58, 100, 54], [108, 48, 40], [330, 80, 58], [382, 56, 70], [398, 100, 42]].forEach(([x, h, w], k) => {       // 먼 건물 + 창문
+      bld += `<rect x="${x}" y="${150 - h}" width="${w}" height="${h}" fill="${k % 2 ? '#a9b9cc' : '#8fa3bb'}"/>`;
+      for (let yy = 150 - h + 8; yy < 144; yy += 11) for (let xx = x + 5; xx < x + w - 6; xx += 10) win += `<rect x="${xx}" y="${yy}" width="5" height="6" fill="${(xx * 7 + yy * 3) % 5 ? '#dbe8f5' : '#f6d98a'}" opacity=".9"/>`;
+    });
+    let trees = ''; for (let i = 0; i < 16; i++) { const x = 8 + i * 28 + (i % 3) * 5, r = 9 + (i % 4) * 3; trees += `<circle cx="${x}" cy="${142 - (i % 2) * 3}" r="${r}" fill="${i % 2 ? '#3f8f54' : '#2f7a46'}"/>`; }
+    let gl = ''; for (let i = 0; i < 6; i++) gl += `<rect x="${92 + i * 42}" y="30" width="3" height="82" fill="#27415f" opacity=".5"/>`;
+    const paper = ['원거리 · 중간 · 근거리를 하나의 렌즈로 봅니다', '가장자리 흔들림은 줄이고 시야는 넓게 설계', '운전할 때는 먼 곳을 또렷하게 볼 수 있어요', '스마트폰과 책을 볼 때는 아래쪽 근거리 영역', '컴퓨터 화면은 가운데 누진대로 편하게 확인', '처음 쓰면 적응 기간이 필요하며 개인차가 있습니다']
+      .map((t, i) => `<text x="${82 + (i % 2) * 4}" y="${352 + i * 14}" font-size="9.6" font-weight="${i === 0 ? 700 : 500}" fill="#3b4350" font-family="sans-serif">${t}</text>`).join('');
+    let bars = ''; [28, 44, 36, 58, 48, 70, 62].forEach((h, i) => { bars += `<rect x="${86 + i * 17}" y="${258 - h * .6}" width="11" height="${h * .6}" rx="2" fill="${i % 2 ? '#0b7a91' : '#4aa3b8'}"/>`; });
+    let wood = ''; for (let i = 0; i < 9; i++) wood += `<path d="M0 ${296 + i * 17}Q110 ${290 + i * 17} 220 ${297 + i * 17}T440 ${294 + i * 17}" fill="none" stroke="#b79a68" stroke-width="1" opacity=".45"/>`;
+    return `<defs><linearGradient id="pgsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fb1ec"/><stop offset=".7" stop-color="#cfe8f8"/><stop offset="1" stop-color="#f7efd9"/></linearGradient>
+      <radialGradient id="pgsun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".4" stop-color="#fff3b0" stop-opacity=".7"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/></radialGradient>
+      <linearGradient id="pgdesk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcc79f"/><stop offset="1" stop-color="#c3a674"/></linearGradient>
+      <linearGradient id="pgscr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#eef3f8"/></linearGradient></defs>
+      <rect width="440" height="440" fill="#efe9db"/><rect width="440" height="152" fill="url(#pgsky)"/>
+      <circle cx="360" cy="52" r="70" fill="url(#pgsun)"/><circle cx="360" cy="52" r="15" fill="#fff6c8"/>
+      <g fill="#fff" opacity=".9"><ellipse cx="60" cy="38" rx="34" ry="9"/><ellipse cx="84" cy="30" rx="22" ry="8"/><ellipse cx="300" cy="22" rx="30" ry="7"/><ellipse cx="324" cy="30" rx="20" ry="6"/><ellipse cx="170" cy="14" rx="24" ry="5"/></g>
+      <path d="M0 120L50 88L96 114L150 82L210 116L270 90L330 118L390 86L440 112V152H0Z" fill="#9cb4d0"/><path d="M0 134L70 108L140 132L220 104L300 130L380 106L440 128V152H0Z" fill="#7f9dbd"/>
+      ${bld}${win}${trees}
+      <path d="M130 16q6-6 12 0M144 22q5-5 10 0M300 40q5-5 10 0" fill="none" stroke="#33465e" stroke-width="1.6"/>
+      <rect x="92" y="28" width="256" height="86" rx="8" fill="#0d1b2e" stroke="#26466b" stroke-width="3"/>${gl}
+      <rect x="100" y="36" width="240" height="70" rx="5" fill="#0f2238" stroke="#2d9bb5" stroke-width="1.4"/>
+      <text x="220" y="72" font-size="34" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="3" font-family="sans-serif">EYEGENTRY</text>
+      <rect x="150" y="80" width="140" height="2.5" fill="#2d9bb5"/><text x="220" y="99" font-size="12.5" font-weight="700" fill="#9fb3cc" text-anchor="middle" font-family="sans-serif">아이젠트리 안경원 · OPTICAL</text>
+      <rect x="0" y="148" width="440" height="6" fill="#5b6472"/><rect x="0" y="152" width="440" height="3" fill="#cbd2db"/>
+      <rect x="40" y="141" width="24" height="9" rx="3" fill="#d92d20"/><rect x="46" y="137" width="12" height="6" rx="2" fill="#eaf4ff"/><rect x="350" y="141" width="26" height="9" rx="3" fill="#2563eb"/><rect x="356" y="137" width="13" height="6" rx="2" fill="#eaf4ff"/>
+      <rect x="0" y="154" width="440" height="136" fill="#e9e2d1"/><path d="M0 170H440M0 200H440M0 230H440M0 260H440" stroke="#ddd5c0" stroke-width="1"/>
+      <rect x="384" y="196" width="40" height="88" fill="#d8cdb4"/><path d="M404 196c-24-6-26-34-4-44 8 14 20 18 4 44zM404 200c22-4 30-30 8-42-4 16-12 22-8 42z" fill="#2e8b57"/>
+      <rect x="48" y="160" width="344" height="126" rx="9" fill="#1b2431"/><rect x="56" y="168" width="328" height="110" rx="4" fill="url(#pgscr)"/>
+      <rect x="56" y="168" width="328" height="15" fill="#0b6b7e"/><circle cx="66" cy="175.5" r="2.6" fill="#ff6b61"/><circle cx="75" cy="175.5" r="2.6" fill="#ffc542"/><circle cx="84" cy="175.5" r="2.6" fill="#4ade80"/><text x="220" y="179" font-size="7.5" font-weight="700" fill="#e6f6f9" text-anchor="middle" font-family="sans-serif">고객 상담 · 시력 기록 2026</text>
+      <rect x="56" y="183" width="64" height="95" fill="#eef3f8"/>${[0, 1, 2, 3, 4].map(i => `<rect x="62" y="${191 + i * 15}" width="${40 + (i % 3) * 6}" height="5" rx="2.5" fill="${i === 1 ? '#0b7a91' : '#9aa6b5'}"/>`).join('')}
+      <text x="132" y="198" font-size="9" font-weight="800" fill="#16324f" font-family="sans-serif">월간 안경 · 렌즈 상담 현황</text><text x="132" y="209" font-size="6.5" fill="#6b7685" font-family="sans-serif">ABCDEFGHIJKLMNOP 0123456789 · 렌즈 굴절률 1.56 1.60 1.67 1.74</text>
+      ${bars}<line x1="84" y1="259" x2="208" y2="259" stroke="#9aa6b5" stroke-width="1"/>
+      <rect x="236" y="214" width="128" height="52" rx="4" fill="#cfe4ea"/><path d="M236 266l36-26 24 16 26-24 42 34z" fill="#6fae8a"/><circle cx="342" cy="228" r="6" fill="#ffd24a"/>
+      <rect x="236" y="272" width="44" height="3" rx="1.5" fill="#9aa6b5"/>
+      <rect x="172" y="284" width="96" height="8" fill="#9aa0aa"/><rect x="150" y="291" width="140" height="6" rx="3" fill="#7d838e"/>
+      <rect x="0" y="296" width="440" height="144" fill="url(#pgdesk)"/>${wood}
+      <rect x="62" y="304" width="316" height="136" rx="5" fill="#fffdf7" stroke="#d5c9ad" stroke-width="1.6"/><rect x="62" y="304" width="14" height="136" fill="#efe6cf"/>${Array.from({length: 7}, (_, i) => `<circle cx="69" cy="${316 + i * 18}" r="2.6" fill="#b7a984"/>`).join('')}
+      <text x="84" y="330" font-size="17" font-weight="800" fill="#15171c" font-family="sans-serif">시력검사 · 안경 · 렌즈</text><rect x="84" y="335" width="150" height="2" fill="#0b6b7e"/>${paper}
+      <rect x="300" y="322" width="64" height="40" fill="none" stroke="#9aa6b5" stroke-width="1"/><path d="M300 335H364M300 348H364M322 322V362M344 322V362" stroke="#c4ccd6" stroke-width="1"/><text x="311" y="332" font-size="6.5" font-weight="700" fill="#44505e" font-family="sans-serif">OD</text><text x="333" y="332" font-size="6.5" font-weight="700" fill="#44505e" font-family="sans-serif">OS</text>
+      <rect x="388" y="388" width="46" height="9" rx="4.5" fill="#1d4ed8" transform="rotate(-24 411 392)"/><circle cx="412" cy="332" r="21" fill="#f6efe2" stroke="#cdbb97" stroke-width="2"/><circle cx="412" cy="332" r="15" fill="#6f4a2b"/><circle cx="406" cy="327" r="4" fill="#8d6240" opacity=".8"/>`;
+  }  function ensureProgScene() {
     if (document.getElementById('prog-scene-host')) return;
     const h = document.createElement('div'); h.id = 'prog-scene-host'; h.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
     h.innerHTML = `<svg width="0" height="0" aria-hidden="true"><defs><g id="prog-scene">${progScene()}</g></defs></svg>`; document.body.appendChild(h);
   }
   // 선명 영역 경계: 렌즈 가장자리의 원거리 경계 → 누진대(가운데 잘록) → 근거리 영역까지 하나로 이어지는 매끈한 곡선
   function clearZone(s, k) {
-    const yF = 34 + s.far * .78 * k, half = (3 + s.mid * .2) * k, nw = (14 + s.near * .62) * k, yW = 118, yN = 160;
+    const yF = 8 + s.far * 1.12 * k, half = (4 + s.mid * .31) * k, nw = (6 + s.near * .78) * k, yW = 118, yN = 160;
     const L = 100 - half, R = 100 + half;
     return `M-6,${yF.toFixed(1)} C40,${yF.toFixed(1)} ${L.toFixed(1)},${yW - 36} ${L.toFixed(1)},${yW} C${L.toFixed(1)},${yW + 16} ${(100 - nw).toFixed(1)},${yN - 24} ${(100 - nw).toFixed(1)},${yN}
       C${(100 - nw).toFixed(1)},${yN + 34} ${(100 - nw * .55).toFixed(1)},212 100,212 C${(100 + nw * .55).toFixed(1)},212 ${(100 + nw).toFixed(1)},${yN + 34} ${(100 + nw).toFixed(1)},${yN}
@@ -498,17 +528,14 @@
     rad(L.x, L.y, L.r * 1.5, 1, [[0, 1], [.5, .85], [1, 0]]);         // 빛의 중심
   }
   Sim.mountGlare = function (el) {
-    const W = 1200, H = 600, LW = 470, LH = 340;
-    const st = {sa: .55, coma: .45, tre: .35, veil: .45, mode: 'off', lx: 790, ly: 360, day: false, t: 0};   // t: 0 밤 → 1 낮 (전환 중간값)
+    const W = 1200, H = 540, LW = 470, LH = 320;
+    const st = {sa: .55, coma: .45, tre: .35, veil: .45, mode: 'win', lx: 790, ly: 340, day: false, t: 0};   // t: 0 밤 → 1 낮 (전환 중간값)
     let anim = null;
-    el.innerHTML = `<div class="gl"><canvas width="${W}" height="${H}"></canvas><span class="vz-tag vz-tag--l" data-k="tl"></span><span class="vz-tag vz-tag--r" data-k="tr"></span></div>
-      <div class="gl-ctl"><div class="seg" data-k="mode">${[['off', '일반 렌즈'], ['win', '빛번짐 렌즈 창'], ['all', '빛번짐 렌즈 전체']].map(([k, n]) => `<button data-v="${k}" class="${k === st.mode ? 'is-on' : ''}">${n}</button>`).join('')}</div>
-        <div class="seg" data-k="time"><button data-v="day">낮</button><button data-v="night" class="is-on">밤</button></div></div>
-      <div class="gl-sl">${[['sa', '구면 수차', '빛 둘레가 둥글게 번짐'], ['coma', '코마', '양옆으로 길게 퍼짐'], ['tre', '트레포일', '세 갈래로 퍼짐'], ['veil', '산란 · 뿌연 막', '전체가 뿌옇게']].map(([k, n, d]) =>
-          `<div class="sl"><label><span>${n}<small>${d}</small></span><b class="num" data-v="${k}"></b></label><input type="range" min="0" max="100" value="${Math.round(st[k] * 100)}" data-k="${k}"></div>`).join('')}</div>
-      <div class="gl-psf">${[['sa', '구면 수차', '빛 둘레로 둥글게 번져요'], ['coma', '코마', '빛 양옆으로 길게 늘어져 퍼져요'], ['tre', '트레포일', '세 갈래 별 모양으로 퍼져요']].map(([k, n, d]) => `<figure><canvas width="480" height="260" data-psf="${k}"></canvas><figcaption><b>${n}</b><span>${d}</span></figcaption></figure>`).join('')}</div>
-      <p class="sim-cap" data-k="cap"></p>`;
-    const cv = el.querySelector('.gl canvas'), g = cv.getContext('2d'), wrap = el.querySelector('.gl');
+    el.innerHTML = `<div class="gl2"><div class="gl2-l"><div class="gl"><canvas width="${W}" height="${H}"></canvas><span class="vz-tag vz-tag--l" data-k="tl"></span><span class="vz-tag vz-tag--r" data-k="tr"></span></div>
+        <div class="gl-ctl"><div class="seg" data-k="time"><button data-v="day">낮</button><button data-v="night" class="is-on">밤</button></div><p class="sim-cap" data-k="cap"></p></div></div>
+      <div class="gl2-r">${[['sa', '구면 수차', '빛 둘레로 둥글게 번져요'], ['coma', '코마', '빛 양옆으로 길게 늘어져 퍼져요'], ['tre', '트레포일', '세 갈래 별 모양으로 퍼져요']].map(([k, n, d]) =>
+          `<div class="gl-card"><canvas width="480" height="260" data-psf="${k}"></canvas><div class="gl-card__t"><b>${n}</b><span>${d}</span><div class="sl"><label><span>번짐 정도</span><b class="num" data-v="${k}"></b></label><input type="range" min="0" max="100" value="${Math.round(st[k] * 100)}" data-k="${k}"></div></div></div>`).join('')}
+        <div class="gl-card gl-card--v"><div class="gl-card__t"><div class="sl"><label><span>산란 · 뿌연 막 <small>전체가 뿌옇게</small></span><b class="num" data-v="veil"></b></label><input type="range" min="0" max="100" value="${Math.round(st.veil * 100)}" data-k="veil"></div></div></div></div></div>`;    const cv = el.querySelector('.gl canvas'), g = cv.getContext('2d'), wrap = el.querySelector('.gl');
     const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
     const base = mk(), baseDay = mk(), glN = mk(), glC = mk();
     // 밤 / 낮 색 구성: 낮에는 하늘·도로가 밝고 가로등은 꺼져 있어 빛번짐이 없음
@@ -620,7 +647,7 @@
       if (st.t > .001) { g.globalAlpha = st.t; g.drawImage(baseDay, 0, 0); g.globalAlpha = 1; }      // 낮: 밝은 장면, 가로등 꺼짐 → 번짐 없음
       if (st.mode === 'win') { g.lineWidth = 3.5; g.strokeStyle = `rgba(255,255,255,${(.9 - st.t * .35).toFixed(2)})`; g.stroke(lensPath()); }
       const tl = el.querySelector('[data-k=tl]'), tr = el.querySelector('[data-k=tr]');
-      tl.textContent = st.day ? '낮 · 빛번짐 거의 없음' : st.mode === 'all' ? '빛번짐 렌즈' : '일반 렌즈'; tr.textContent = '렌즈 창 안 · 빛번짐 렌즈'; tr.hidden = st.mode !== 'win' || st.day;
+      tl.textContent = st.day ? '낮 · 빛번짐 거의 없음' : '일반 렌즈'; tr.textContent = '렌즈 창 안 · 빛번짐 렌즈'; tr.hidden = st.mode !== 'win' || st.day;
     }
     function drawPSF() {
       el.querySelectorAll('[data-psf]').forEach(c => {
@@ -635,7 +662,7 @@
     }
     function redraw() {
       drawGlare(glN, false); drawGlare(glC, true); compose(); drawPSF();
-      el.querySelectorAll('.gl-sl b[data-v]').forEach(b => b.textContent = Math.round(st[b.dataset.v] * 100));
+      el.querySelectorAll('.gl2-r b[data-v]').forEach(b => b.textContent = Math.round(st[b.dataset.v] * 100));
       caption();
     }
     function caption() {
@@ -650,8 +677,7 @@
     wrap.addEventListener('pointerdown', e => { if (st.mode !== 'win') return; const [x, y] = toCanvas(e); drag = {dx: st.lx - x, dy: st.ly - y}; wrap.setPointerCapture(e.pointerId); });
     wrap.addEventListener('pointermove', e => { if (!drag) return; const [x, y] = toCanvas(e); st.lx = clamp(x + drag.dx, LW / 2, W - LW / 2); st.ly = clamp(y + drag.dy, LH / 2, H - LH / 2); compose(); });
     ['pointerup', 'pointercancel'].forEach(k => wrap.addEventListener(k, () => { drag = null; }));
-    el.querySelectorAll('.gl-sl input').forEach(i => i.addEventListener('input', () => { st[i.dataset.k] = +i.value / 100; redraw(); }));
-    el.querySelector('[data-k=mode]').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.mode = b.dataset.v; el.querySelectorAll('[data-k=mode] button').forEach(x => x.classList.toggle('is-on', x === b)); wrap.classList.toggle('is-win', st.mode === 'win'); redraw(); });
+    el.querySelectorAll('.gl2-r input').forEach(i => i.addEventListener('input', () => { st[i.dataset.k] = +i.value / 100; redraw(); }));
     el.querySelector('[data-k=time]').addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b || (b.dataset.v === 'day') === st.day) return;
       st.day = b.dataset.v === 'day'; el.querySelectorAll('[data-k=time] button').forEach(x => x.classList.toggle('is-on', x === b));
@@ -664,16 +690,16 @@
   Sim.progView = function (col, add, tier, opt = {}) {
     ensureProgScene();
     const n = ++uid, s = Sim.progScores(col, tier), k = clamp(1.18 - .13 * add, .7, 1.05);
-    const blur = (3 + add * 4) * (1.5 - s.side / 100), zone = clearZone(s, k);
+    const blur = (2.5 + add * 3.5) * (2.2 - s.side / 50), swim = (100 - s.side) * .36, zone = clearZone(s, k);
     return `<svg class="pg-svg" viewBox="0 0 200 200" role="img" aria-label="시야 지도"><defs>
       <clipPath id="pc${n}"><circle cx="100" cy="100" r="96"/></clipPath>
-      <filter id="pb${n}" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="${(blur * 1.25).toFixed(1)} ${(blur * .8).toFixed(1)}"/></filter>
+      <filter id="pb${n}" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".011 .019" numOctaves="2" seed="5" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="${swim.toFixed(1)}" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="${(blur * 1.25).toFixed(1)} ${(blur * .85).toFixed(1)}" result="b"/><feColorMatrix in="b" type="saturate" values="${(1 - (100 - s.side) / 280).toFixed(2)}"/></filter>
       <filter id="pm${n}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.5"/></filter>
       <mask id="pk${n}" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><rect width="200" height="200" fill="#000"/><path d="${zone}" fill="#fff" filter="url(#pm${n})"/></mask></defs>
       <g clip-path="url(#pc${n})"><g transform="scale(.4545)"><use href="#prog-scene" filter="url(#pb${n})"/></g>
-        <rect width="200" height="200" fill="#c2410c" opacity=".1"/>
+        <rect width="200" height="200" fill="#c2410c" opacity="${((100 - s.side) / 1000).toFixed(2)}"/>
         <g mask="url(#pk${n})"><g transform="scale(.4545)"><use href="#prog-scene"/></g></g>
-        <path d="${zone}" fill="none" stroke="#fff" stroke-width="3.6" stroke-opacity=".75"/><path d="${zone}" fill="none" stroke="#0b7a91" stroke-width="1.7"/>
+        <path d="${zone}" fill="none" stroke="#fff" stroke-width="3.6" stroke-opacity="1"/><path d="${zone}" fill="none" stroke="#0b7a91" stroke-width="1.7"/>
         ${opt.labels ? `<text x="24" y="150" font-size="9" font-weight="800" fill="#7c2d12" opacity=".85">흐림</text><text x="176" y="150" font-size="9" font-weight="800" fill="#7c2d12" opacity=".85" text-anchor="end">흐림</text>` : ''}</g>
       <circle cx="100" cy="100" r="96" fill="none" stroke="#cfd6e0" stroke-width="3"/></svg>`;
   };

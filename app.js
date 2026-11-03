@@ -393,12 +393,12 @@ function matrixCard(m) {
   // 렌즈 특징: 제품별 설명 · 누진대 · 추천 대상 (관리자 입력이 있으면 그 값, 없으면 자이스·케미 자료)
   const refs = cols.map(progRef);
   const lines = (c, r) => { const own = String(c.detail || '').split(/\n+/).map(s => s.trim()).filter(Boolean); return own.length ? own : (r ? r.feats : []); };
-  const frow = (label, fn) => `<div class="pg-l pg-fl">${label}</div>` + cols.map((c, i) => { const h = fn(c, refs[i]); return h ? `<button class="pg-c pg-f" ${at(i)}>${h}</button>` : '<div class="pg-c pg-na">—</div>'; }).join('');
+  const frow = (label, fn, cls = '') => `<div class="pg-l pg-fl">${label}</div>` + cols.map((c, i) => { const h = fn(c, refs[i]); return h ? `<button class="pg-c pg-f ${cls}" ${at(i)}>${h}</button>` : '<div class="pg-c pg-na">—</div>'; }).join('');
   if (cols.some((c, i) => lines(c, refs[i]).length || c.corridor || (refs[i] && refs[i].corridor))) {
     g += `<div class="pg-sec">렌즈 특징</div>`;
+    g += frow('누진대', (c, r) => c.corridor ? esc(/mm/.test(c.corridor) ? c.corridor : plain(c.corridor) + 'mm') : r ? esc(r.corridor) : '', 'pg-f--s');
     g += frow('특징', (c, r) => { const L = lines(c, r); return L.length ? `<ul>${L.slice(0, 4).map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''; });
-    g += frow('누진대', (c, r) => c.corridor ? esc(/mm/.test(c.corridor) ? c.corridor : plain(c.corridor) + 'mm') : r ? esc(r.corridor) : '');
-    if (refs.some(Boolean)) g += frow('추천', (c, r) => r ? esc(r.fit) : '');
+    if (refs.some(Boolean)) g += frow('추천', (c, r) => r ? esc(r.fit) : '', 'pg-f--s');
   }
   // 시야 비교: ADD 조절 + 같은 등급이 이어진 열은 한 칸으로 합쳐 크게
   g += `<div class="pg-sec pg-vhead"><span>시야 비교</span>
