@@ -88,6 +88,7 @@
     return {destroy() { dead = true; if (h && h.destroy) h.destroy(); h = null; }};
   }
   const PANELS = {
+    fatigue: {t: '피로감소 렌즈 · 가까이 볼 때 눈의 초점 조절 부담', w: 2, mount: el => MyoTools.mountFatigue(el)},
     office3d: {t: '오피스 렌즈 · 모니터 · 서류 · 벽 시계 3D', w: 2, mount: el => mount3D(el, 'of')},
     zcolor: {t: '자이스 변색렌즈 컬러 · 포토퓨전 X', tab: '자이스 변색 컬러', w: 2, mount: mountZColor},
     consult: {t: '근시 진행 상담 · 또래 비교와 18세 예측', tab: '근시 진행 상담', w: 2, hud: 1, mount: el => MyoTools.mountConsult(el)},
@@ -108,7 +109,8 @@
   const SETS = [                                             // 분류 이름 → 하단 시뮬레이션 (위에서부터 먼저 맞는 것)
     [/^오피스/, ['office3d']],
     [/근시 정보/, ['axial', 'myopia']],
-    [/어린이 근시/, ['consult', 'growth', 'myopia']],
+    [/어린이 근시/, ['growth', 'myopia', 'consult']],                 // 처음에는 성장과 근시 진행 원리, 근시 진행 상담은 세 번째 탭
+    [/^피로감소/, ['fatigue']],
     [/시력 이상/, ['refraction']],
     [/빛번짐/, ['glare']],
     [/다초점/, ctx => ctx.photo ? ['zcolor'] : []],             // 다초점: 변색 보드를 보고 있을 때만 자이스 변색 컬러 이미지

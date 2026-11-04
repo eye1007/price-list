@@ -47,7 +47,7 @@
   /* ───── 안구 단면 (가로 단면, 빛은 왼쪽에서 들어옴) ─────
      공막·맥락막·망막 3겹 / 각막 · 전방 · 홍채(동공) · 수정체 · 섬모체와 진대 · 유리체 / 황반(중심와) · 시신경 유두와 망막 혈관
      x0: 각막 맨 앞, L: 안구 길이(px), ry: 세로 반지름. labels: 해부 이름표 */
-  function eyeModel({x0, cy, L, ry, col = C.dim, ret = C.blue, labels = false, muted = false}) {
+  function eyeModel({x0, cy, L, ry, col = C.dim, ret = C.blue, labels = false, muted = false, lensK = 1}) {
     const K = muted ? {vit: 'rgba(110,130,160,.10)', cor: 'rgba(110,140,180,.22)', lens: 'rgba(110,140,185,.28)', lensS: '#7a90ae', iris: '#a39580', irisS: '#75664f', cil: '#e1cfb3', cilS: '#ad9677', FP: '#c2a487', vess: '#d3a29d', nerve: '#ebe6db', mac: '#e0c97c'}
       : {vit: 'rgba(31,79,224,.16)', cor: 'rgba(31,79,224,.42)', lens: 'rgba(31,79,224,.5)', lensS: '#1d3fa8', iris: '#8b5a2b', irisS: '#3f2610', cil: '#f2b45e', cilS: '#8a4b12', FP: '#a8561a', vess: '#e0392f', nerve: '#efe7d3', mac: '#e0b030'};
     const f = n => (+n).toFixed(1), rx = L / 2, cx = x0 + rx, FP = K.FP;
@@ -71,8 +71,8 @@
     });
     const yc0 = .42 * ry, xa = wall(yc0), k1 = x0 - .15 * L, k2 = x0 - .06 * L;                                                                  // 각막
     g += `<path d="M${f(xa)} ${f(cy - yc0)}Q${f(k1)} ${f(cy)} ${f(xa)} ${f(cy + yc0)}L${f(xa + .022 * L)} ${f(cy + yc0)}Q${f(k2 + .0 * L)} ${f(cy)} ${f(xa + .022 * L)} ${f(cy - yc0)}Z" fill="${K.cor}" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
-    g += `<ellipse cx="${f(xl)}" cy="${f(cy)}" rx="${f(.05 * L)}" ry="${f(.34 * ry)}" fill="${K.lens}" stroke="${K.lensS}" stroke-width="2.4"/>` +                       // 수정체
-      [[.032, .26], [.016, .17]].map(([a, b]) => `<ellipse cx="${f(xl)}" cy="${f(cy)}" rx="${f(a * L)}" ry="${f(b * ry)}" fill="none" stroke="${ret}" stroke-width="1" opacity=".4"/>`).join('');
+    g += `<ellipse cx="${f(xl)}" cy="${f(cy)}" rx="${f(.05 * L * lensK)}" ry="${f(.34 * ry / Math.sqrt(lensK))}" fill="${K.lens}" stroke="${K.lensS}" stroke-width="2.4"/>` +                       // 수정체
+      [[.032, .26], [.016, .17]].map(([a, b]) => `<ellipse cx="${f(xl)}" cy="${f(cy)}" rx="${f(a * L * lensK)}" ry="${f(b * ry / Math.sqrt(lensK))}" fill="none" stroke="${ret}" stroke-width="1" opacity=".4"/>`).join('');
     if (labels) {
       const lbl = (x, y, tx, ty, t, a = 'middle') => `<line x1="${f(x)}" y1="${f(y)}" x2="${f(tx)}" y2="${f(ty + (ty < y ? 3 : -9))}" stroke="${C.ink}" stroke-width="1" opacity=".6"/><text x="${f(tx)}" y="${f(ty)}" font-size="12" font-weight="850" fill="${C.ink}" text-anchor="${a}">${t}</text>`;
       g += lbl(x0 - .04 * L, cy - .3 * ry, x0 - .04 * L, cy - ry - 10, '각막') + lbl(xi, cy - .45 * ry, xi + 12, cy - ry - 10, '홍채') + lbl(xl, cy + .34 * ry, xl, cy + ry + 18, '수정체')
@@ -193,7 +193,7 @@
   const HYP = [[0, .9], [1, .7], [3, .45], [6, .2], [10, .04], [25, 0]];                                             // 유아기 생리적 원시(초점이 망막보다 먼 정도, mm)
   const EXTRA = [[0, 0], [5, 0], [6, .15], [8, .5], [10, .9], [12, 1.2], [14, 1.45], [16, 1.6], [18, 1.7], [25, 1.8]];  // 근시형 추가 신장(mm)
   const alN = a => lerpTbl(AL_N, a), foc = a => alN(a) + lerpTbl(HYP, a), alM = a => alN(a) + lerpTbl(EXTRA, a);
-  const SLOTS = [['영유아', '0–2세', 1], ['유아', '3–6세', 4.5], ['학령기', '7–12세', 9], ['청소년', '13–18세', 15], ['성인', '19세~', 22]];
+  const SLOTS = [['영유아', '0–2세', 1], ['유아', '3–6세', 4.5], ['학령기', '7–12세', 9], ['청소년', '13–18세', 15], ['성인', '19세', 19]];
   const STAGES = [[2.99, '영유아', '안구가 아직 짧아 초점이 망막 <b>뒤</b>에 맺히는 <b>생리적 원시</b> 상태예요. 이 시기에 키도 눈도 아주 빠르게 자랍니다.'],
     [6.99, '유아', '눈이 자라는 동안 눈 속 수정체도 얇아지며 초점이 같이 이동해, 원시가 점점 줄어드는 <b>정시화</b>가 일어나요.'],
     [12.99, '학령기', '정상 눈은 초점과 망막이 맞게 자라 정시를 유지해요. <b>근시형</b>은 안구만 계속 길어져 초점이 망막 <b>앞</b>에 맺히기 시작해요. 근시 진행이 가장 빠른 시기예요.'],
@@ -210,7 +210,7 @@
     const st = {age: 1, play: 0};
     el.innerHTML = `<div class="gr hud" id="${id}">${bar('FIG. 02 — GROWTH', '<span class="hd-lg"><i class="t"></i>정상 성장<i class="c"></i>근시형 성장 (안경)</span><b class="hd-n gr-cnt"></b>')}
       <div class="gr-ctl"><button type="button" class="btn btn--line gr-play" data-act="play">▶ 자라는 모습 보기</button>
-        <div class="sl"><input type="range" min="0" max="25" step="0.5" value="${st.age}" aria-label="나이"></div><span class="chip gr-stage"></span></div>
+        <div class="sl"><input type="range" min="0" max="19" step="0.5" value="${st.age}" aria-label="나이"></div><span class="chip gr-stage"></span></div>
       <svg viewBox="0 0 400 276" class="gr-ppl" aria-label="영유아부터 성인까지 키 변화"></svg>
       <svg viewBox="0 0 560 300" class="gr-eye" aria-hidden="true"></svg>
       <div class="gr-side"><div class="gr-nums"></div><div class="gr-gauge"></div><div class="gr-vis"></div></div>
@@ -261,15 +261,15 @@
       const bl = d => clamp(Math.abs(d) * 1.15, 0, 6.5).toFixed(1);
       vis.innerHTML = `<figure class="vv"><div class="vv-s"><div style="filter:blur(${bl(dN)}px)">${SCENE}</div></div><figcaption><b>정상 눈이 보는 세상</b>${sN[0] === '정시' ? '또렷해요' : sN[0] === '원시' ? '초점이 덜 맞아요' : '조금 흐려요'}</figcaption></figure>
         <figure class="vv vv--c"><div class="vv-s"><div style="filter:blur(${bl(dM)}px)">${SCENE}</div></div><figcaption><b>근시형 눈이 보는 세상</b>${sM[0] === '정시' ? '또렷해요' : sM[0] === '원시' ? '초점이 덜 맞아요' : '멀리가 흐려요'}</figcaption></figure>`;
-      box.querySelector('.gr-cnt').textContent = 'AGE ' + String(Math.floor(a)).padStart(2, '0') + ' / 25';
+      box.querySelector('.gr-cnt').textContent = 'AGE ' + String(Math.floor(a)).padStart(2, '0') + ' / 19';
       box.querySelector('.gr-stage').textContent = SLOTS[si][0] + ' · ' + SLOTS[si][1]; cap.innerHTML = STAGES[si][2] + ' <small>대표적인 성장 곡선을 단순화한 개념도예요. 그림은 차이를 이해하기 쉽게 키워서 그렸고, 숫자는 실제 값이에요.</small>';
     }
     let raf = 0;
     function stop() { cancelAnimationFrame(raf); st.play = 0; play.textContent = '▶ 자라는 모습 보기'; }
     function start() {
-      if (st.age >= 25) st.age = 0;
+      if (st.age >= 19) st.age = 0;
       st.play = 1; play.textContent = '❚❚ 멈추기'; let last = performance.now();
-      (function tick(now) { if (!st.play) return; st.age = Math.min(25, st.age + (now - last) / 1000 * 2.2); last = now; rng.value = st.age; draw(); if (st.age >= 25) return stop(); raf = requestAnimationFrame(tick); })(last);
+      (function tick(now) { if (!st.play) return; st.age = Math.min(19, st.age + (now - last) / 1000 * 3); last = now; rng.value = st.age; draw(); if (st.age >= 19) return stop(); raf = requestAnimationFrame(tick); })(last);
     }
     play.addEventListener('click', () => st.play ? stop() : start(), {signal: ac.signal});
     rng.addEventListener('input', () => { stop(); st.age = +rng.value; draw(); }, {signal: ac.signal});
@@ -355,5 +355,110 @@
     return {destroy() { cancelAnimationFrame(anim); ac.abort(); }};
   }
 
-  global.MyoTools = {mountConsult, mountGrowth, mountControl, person};
+  /* ═════════ 4. 피로감소 렌즈: 가까이 볼 때 눈이 해야 하는 '초점 조절' 부담 비교 (개념도) ═════════
+     가까운 것을 보려면 수정체가 두꺼워지며 조절을 하는데(필요량 D = 1 ÷ 거리(m)), 피로감소 렌즈의 가입도만큼 그 부담이 줄어듭니다.
+     화면 구성은 레퍼런스 영상(주식 앱 소개)처럼 흰 바탕 · 휴대폰 화면 · 민트 라인 차트 · 검정 알약 탭 · 밀어서 확인 슬라이더 · 검정 카드로 만들었습니다.
+     피로도 곡선과 효과 크기는 이해를 돕는 개념값이고 개인차가 있습니다. */
+  function mountFatigue(el) {
+    const id = 'fx' + (++uid), ac = new AbortController();
+    const OBJ = [['스마트폰', 30], ['서류 · 책', 40], ['모니터', 60]], ADDS = [.4, .6], MINT = '#2bbf95', RED = '#ee8070';
+    const st = {obj: 1, add: .4, hours: 4};
+    const demand = cm => 100 / cm, fat = (D, h) => clamp(D / 3.5 * (.12 + .88 * (1 - Math.exp(-h / 3.2)) / (1 - Math.exp(-8 / 3.2))), 0, 1);
+    const lvl = f => f > .75 ? '높음' : f > .45 ? '보통' : '낮음';
+    el.innerHTML = `<div class="fx" id="${id}">
+      <div class="fx-phone"><div class="fx-scr">
+        <div class="fx-st"><b>11:42</b><span>▂▄▆ ◖ ▮</span></div>
+        <div class="fx-hd"><span>‹</span><b>피로감소 렌즈</b><i></i></div>
+        <div class="fx-tt"><i></i><div><b>하루 눈 피로 리포트</b><small>가까이 볼 때 · 눈의 조절 부담</small></div></div>
+        <div class="fx-big"><b class="fx-cut num"></b><small class="fx-sub num"></small></div>
+        <svg viewBox="0 0 260 112" class="fx-chart" aria-hidden="true"></svg>
+        <div class="fx-pills" data-k="obj">${OBJ.map(([n], i) => `<button type="button" data-v="${i}">${n}</button>`).join('')}</div>
+        <div class="fx-pills fx-pills--s" data-k="add">${ADDS.map(a => `<button type="button" data-v="${a}">+${a.toFixed(2)}D</button>`).join('')}</div>
+        <div class="fx-swipe" tabindex="0" role="slider" aria-label="하루 사용 시간" aria-valuemin="1" aria-valuemax="8"><span class="fx-swh"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="#3b4856" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="fx-swt"></span></div>
+      </div></div>
+      <div class="fx-main"><div class="fx-eyes"></div>
+        <div class="fx-row"><div class="fx-design"></div><div class="fx-black"></div></div>
+        <p class="sim-cap fx-cap"></p></div></div>`;
+    const box = el.querySelector('.fx'), $ = s => box.querySelector(s);
+    const sw = $('.fx-swipe'), swh = $('.fx-swh'), swt = $('.fx-swt');
+    /* 눈 단면 (레퍼런스 스타일의 플랫 일러스트): 흰 안구에 검정 윤곽선, 민트 망막과 초점, 조절이 클수록 수정체가 두껍고 둥글어지며 섬모체(조절근) 주변이 붉게 */
+    const eyeSvg = (D, relief, f) => {
+      const cx = 205, cy = 105, R = 76, glow = relief ? MINT : RED, lr = 6 + D * 5, lh = 32 - D * 2.2, lx = 172, INK = '#3b4856';
+      const ray = y0 => `<polyline points="34,${cy + y0} 112,${cy + y0 * .6} ${lx},${cy + y0 * .28} ${cx + 71},${cy}" fill="none" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round" opacity=".7"/>
+        <polyline points="34,${cy + y0} 112,${cy + y0 * .6} ${lx},${cy + y0 * .28} ${cx + 71},${cy}" fill="none" stroke="${MINT}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 7"/>`;
+      const zon = [[-1, 56], [1, 154]].map(([s, y]) => `<line x1="162" y1="${y}" x2="${lx}" y2="${cy + s * (lh - 1)}" stroke="${INK}" stroke-width="${(.8 + f * 2.2).toFixed(1)}" stroke-linecap="round" opacity="${(.45 + f * .4).toFixed(2)}"/><rect x="152" y="${y - 7}" width="18" height="14" rx="7" fill="${INK}"/>`).join('');
+      const a = 58 * Math.PI / 180, rx = cx + 71 * Math.cos(a), ry1 = cy - 71 * Math.sin(a), ry2 = cy + 71 * Math.sin(a);
+      return `<svg viewBox="0 0 340 210" class="fx-eye" aria-hidden="true"><defs><filter id="${id}s" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#14181e" flood-opacity=".14"/></filter></defs>
+        <rect x="8" y="${cy - 28}" width="24" height="56" rx="6" fill="${INK}"/><rect x="11.5" y="${cy - 22}" width="17" height="40" rx="3" fill="#eceef1"/><circle cx="20" cy="${cy + 24}" r="1.8" fill="#9aa1ab"/>
+        <g filter="url(#${id}s)"><circle cx="${cx}" cy="${cy}" r="${R}" fill="#fff" stroke="${INK}" stroke-width="2.6"/></g>
+        <path d="M139.8 66Q104 ${cy} 139.8 144A${R} ${R} 0 0 1 139.8 66Z" fill="${relief ? '#e3f7ef' : '#fdecea'}" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle cx="${lx}" cy="${cy}" r="${(40 + f * 6).toFixed(0)}" fill="${glow}" opacity="${(.05 + f * .24).toFixed(2)}"/>
+        <path d="M158 50V84M158 126V160" stroke="${INK}" stroke-width="5.5" stroke-linecap="round"/>${zon}
+        <ellipse cx="${lx}" cy="${cy}" rx="${lr.toFixed(1)}" ry="${lh.toFixed(1)}" fill="${relief ? '#bdeedd' : '#f9cdc6'}" stroke="${INK}" stroke-width="2.4"/><ellipse cx="${(lx - lr * .35).toFixed(1)}" cy="${cy - lh * .45}" rx="${(lr * .22).toFixed(1)}" ry="${(lh * .3).toFixed(1)}" fill="#fff" opacity=".85"/>
+        <path d="M${rx.toFixed(1)} ${ry1.toFixed(1)}A71 71 0 0 1 ${rx.toFixed(1)} ${ry2.toFixed(1)}" fill="none" stroke="${MINT}" stroke-width="6.5" stroke-linecap="round"/>
+        <rect x="278" y="${cy + 24}" width="30" height="13" rx="6.5" fill="${INK}" transform="rotate(22 278 ${cy + 24})"/>
+        ${[-18, 0, 18].map(ray).join('')}
+        <circle cx="${cx + 71}" cy="${cy}" r="15" fill="${MINT}" opacity=".24"/><circle cx="${cx + 71}" cy="${cy}" r="5.2" fill="${MINT}" stroke="#fff" stroke-width="2.4"/>
+        <ellipse cx="66" cy="${cy}" rx="${relief ? 7 : 3}" ry="38" fill="${relief ? 'rgba(23,181,132,.2)' : 'rgba(0,0,0,.04)'}" stroke="${INK}" stroke-width="2"/>
+        <rect x="${relief ? 18 : 26}" y="${cy + 46}" width="${relief ? 96 : 80}" height="19" rx="9.5" fill="${INK}"/><text x="66" y="${cy + 59.5}" font-size="10" font-weight="850" fill="#fff" text-anchor="middle">${relief ? '+' + st.add.toFixed(2) + 'D 가입도' : '일반 렌즈'}</text>${relief ? `<circle cx="27" cy="${cy + 55.5}" r="3.2" fill="${MINT}"/>` : ''}
+        <g font-size="9.5" font-weight="800" fill="#8a919b" text-anchor="middle"><text x="118" y="200">각막</text><text x="${lx}" y="200">수정체</text><text x="${cx + 62}" y="200">망막</text></g></svg>`;
+    };
+    /* 렌즈 설계: 일반 단초점은 어디나 같은 도수, 피로감소 렌즈는 아래로 갈수록 가입도가 부드럽게 커짐 */
+    const GZ = [128, 112, 80], LP = 'M20 8H70Q86 8 86 28V112Q86 142 62 142H28Q4 142 4 112V28Q4 8 20 8Z';
+    const designCard = () => {
+      const a = st.add, op = (.2 + a / .6 * .32).toFixed(2), gy = GZ[st.obj], gid = id + 'g';
+      const lens = (x, relief) => {
+        const col = relief ? MINT : RED, iso = relief ? [58, 84, 108].map((y, i) => `<path d="M10 ${y}Q45 ${y + 7} 80 ${y}" fill="none" stroke="${MINT}" stroke-opacity="${(.25 + i * .22).toFixed(2)}" stroke-width="1.4" stroke-dasharray="3 3"/>`).join('') : '';
+        return `<g transform="translate(${x} 14)"><path d="${LP}" fill="${relief ? 'url(#' + gid + ')' : 'rgba(31,79,224,.08)'}" stroke="#3b4856" stroke-width="2.4"/>${iso}
+          <circle cx="45" cy="${gy}" r="9" fill="${col}" fill-opacity=".2"/><circle cx="45" cy="${gy}" r="4.5" fill="#fff" stroke="${col}" stroke-width="2.4"/>
+          <text x="45" y="162" font-size="10.5" font-weight="900" fill="#3b4856" text-anchor="middle">${relief ? '피로감소 설계' : '일반 단초점'}</text>
+          <text x="45" y="176" font-size="9.5" font-weight="700" fill="#6b7280" text-anchor="middle">${relief ? '아래로 +' + a.toFixed(2) + 'D까지' : '어디나 같은 도수'}</text></g>`;
+      };
+      return `<h5>렌즈 설계</h5><div class="fx-dg"><svg viewBox="0 0 200 190" class="fx-lens" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${MINT}" stop-opacity="0"/><stop offset=".38" stop-color="${MINT}" stop-opacity=".05"/><stop offset="1" stop-color="${MINT}" stop-opacity="${op}"/></linearGradient></defs>
+          <text x="6" y="11" font-size="9" font-weight="800" fill="#6b7280">▲ 먼 곳</text>${lens(6, false)}${lens(104, true)}<text x="194" y="11" font-size="9" font-weight="800" fill="#6b7280" text-anchor="end">가까운 곳 ▼</text></svg>
+        <ul><li><b>위쪽(먼 곳)</b>은 내 도수 그대로라 운전 · 멀리 보기가 선명해요.</li><li><b>아래로 갈수록</b> +${a.toFixed(2)}D 가입도가 부드럽게 커져 가까운 화면에서 눈의 초점 조절을 도와요.</li><li>누진다초점보다 <b>가입도가 작고 변화가 완만</b>해서 적응 부담이 적어요.</li><li>디지털 기기를 오래 보는 분 · 초기 노안에 잘 맞아요.</li></ul></div>`;
+    };
+    /* 휴대폰 화면의 라인 차트: 하루 사용 시간에 따른 눈 피로 (일반 vs 피로감소) */
+    const chart = (D0, D1) => {
+      const W = 260, H = 112, L = 8, R = 14, T = 10, B = 20, X = h => L + h / 8 * (W - L - R), Y = f => T + (1 - f) * (H - T - B);
+      const pts = D => Array.from({length: 33}, (_, i) => [X(i / 4), Y(fat(D, i / 4))]), P = a => a.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+      const a0 = pts(D0), a1 = pts(D1), h = st.hours, gx = X(h);
+      const dotp = (D, c) => `<circle cx="${gx}" cy="${Y(fat(D, h)).toFixed(1)}" r="9" fill="${c}" opacity=".18"/><circle cx="${gx}" cy="${Y(fat(D, h)).toFixed(1)}" r="4.2" fill="${c}" stroke="#fff" stroke-width="2"/>`;
+      return `<defs><linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${MINT}" stop-opacity=".28"/><stop offset="1" stop-color="${MINT}" stop-opacity="0"/></linearGradient></defs>
+        ${[0, 2, 4, 6, 8].map(t => `<text x="${X(t)}" y="${H - 5}" font-size="8.5" font-weight="700" fill="#9aa1ab" text-anchor="middle">${t}h</text>`).join('')}
+        <path d="${P(a1)}L${X(8)} ${H - B}L${X(0)} ${H - B}Z" fill="url(#${id}f)"/>
+        <path d="${P(a0)}" fill="none" stroke="${RED}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 3"/><path d="${P(a1)}" fill="none" stroke="${MINT}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="${gx}" x2="${gx}" y1="${T}" y2="${H - B}" stroke="#3b4856" stroke-opacity=".18" stroke-dasharray="2 3"/>${dotp(D0, RED)}${dotp(D1, MINT)}`;
+    };
+    function draw() {
+      const cm = OBJ[st.obj][1], D0 = demand(cm), D1 = Math.max(0, D0 - st.add), f0 = fat(D0, st.hours), f1 = fat(D1, st.hours), cut = Math.round((1 - D1 / D0) * 100);
+      $('.fx-cut').textContent = '−' + cut + '%'; $('.fx-sub').textContent = `${OBJ[st.obj][0]} ${cm}cm · ${D0.toFixed(2)}D → ${D1.toFixed(2)}D`;
+      $('.fx-chart').innerHTML = chart(D0, D1);
+      box.querySelectorAll('[data-k=obj] button').forEach(b => b.classList.toggle('is-on', +b.dataset.v === st.obj)); box.querySelectorAll('[data-k=add] button').forEach(b => b.classList.toggle('is-on', +b.dataset.v === st.add));
+      const eyeCard = (cls, name, relief, D, f) => `<div class="fx-eye-c ${cls}">${eyeSvg(D, relief, f)}<div class="fx-t"><span class="fx-chip">${name}</span><small>눈이 해야 하는 조절</small><b class="num">${D.toFixed(2)}<em>D</em></b>${relief ? `<span class="fx-cutp">−${cut}% 부담 감소</span>` : '<span class="fx-cutp fx-cutp--n">기준</span>'}
+        <div class="fx-bar"><span>눈 피로 · ${st.hours}시간 후</span><i><u style="width:${(f * 100).toFixed(0)}%"></u></i><b>${lvl(f)}</b></div></div></div>`;
+      $('.fx-eyes').innerHTML = eyeCard('fx-eye-c--n', '일반 렌즈', false, D0, f0) + eyeCard('fx-eye-c--r', '피로감소 렌즈', true, D1, f1);
+      $('.fx-design').innerHTML = designCard();
+      $('.fx-black').innerHTML = `<small>피로감소 렌즈 · +${st.add.toFixed(2)}D</small><h3>가까운 화면 앞에서도<br>눈은 덜 힘들게</h3><ul><li><span>눈의 조절</span><b class="num">${D0.toFixed(2)}D → ${D1.toFixed(2)}D</b></li><li><span>부담 감소</span><b class="num g">−${cut}%</b></li><li><span>${st.hours}시간 뒤 눈 피로</span><b>${lvl(f0)} → ${lvl(f1)}</b></li></ul>`;
+      $('.fx-cap').innerHTML = `<b>${OBJ[st.obj][0]}을(를) ${cm}cm에서 보면</b> 눈은 ${D0.toFixed(2)}D만큼 초점을 조절해야 해요. 피로감소 렌즈는 +${st.add.toFixed(2)}D 가입도로 이 부담을 ${D1.toFixed(2)}D로 줄여, 오래 볼수록 덜 피로해요. <small>조절량(D = 1÷거리)은 계산값이고, 피로 게이지와 효과 크기는 개인차가 있는 개념 설명용 그림이에요.</small>`;
+      place();
+    }
+    /* 밀어서 하루 사용 시간 늘리기 (레퍼런스의 'Swipe to confirm' 슬라이더) */
+    function place() {
+      const r = sw.getBoundingClientRect(), hw = swh.offsetWidth || 40, span = Math.max(0, r.width - hw - 8);
+      swh.style.transform = `translateX(${((st.hours - 1) / 7 * span).toFixed(1)}px)`; swt.textContent = `밀어서 사용 시간 늘리기 · ${st.hours}시간`; sw.setAttribute('aria-valuenow', st.hours);
+    }
+    let drag = false;
+    const setFromX = x => { const r = sw.getBoundingClientRect(), hw = swh.offsetWidth || 40, k = clamp((x - r.left - hw / 2 - 4) / Math.max(1, r.width - hw - 8), 0, 1); st.hours = Math.round((1 + k * 7) * 2) / 2; draw(); };
+    sw.addEventListener('pointerdown', e => { drag = true; sw.setPointerCapture(e.pointerId); setFromX(e.clientX); }, {signal: ac.signal});
+    sw.addEventListener('pointermove', e => { if (drag) setFromX(e.clientX); }, {signal: ac.signal});
+    ['pointerup', 'pointercancel'].forEach(k => sw.addEventListener(k, () => { drag = false; }, {signal: ac.signal}));
+    sw.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowUp') st.hours = Math.min(8, st.hours + .5); else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') st.hours = Math.max(1, st.hours - .5); else return; e.preventDefault(); draw(); }, {signal: ac.signal});
+    box.addEventListener('click', e => { const b = e.target.closest('.fx-pills button'); if (!b) return; const k = b.parentElement.dataset.k; if (k === 'obj') st.obj = +b.dataset.v; else st.add = +b.dataset.v; draw(); }, {signal: ac.signal});
+    const ro = new ResizeObserver(place); ro.observe(sw);
+    draw();
+    return {destroy() { ac.abort(); ro.disconnect(); }};
+  }
+
+  global.MyoTools = {mountConsult, mountGrowth, mountControl, mountFatigue, person};
 })(window);
