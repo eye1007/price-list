@@ -1,4 +1,4 @@
-/* 아이젠트리 V4 · 분류 하단의 미니 시뮬레이션
+/* 아이젠트리 V5 · 분류 하단의 미니 시뮬레이션
    예전에는 분류마다 설명 이미지를 붙였지만, 같은 내용을 직접 만져 볼 수 있는 시뮬레이션으로 바꿉니다.
    모든 시뮬레이션은 개념 설명용 단순 모델입니다. */
 (function (global) {
@@ -91,8 +91,8 @@
     fatigue: {t: '피로감소 렌즈 · 가까이 볼 때 눈의 초점 조절 부담', w: 2, mount: el => MyoTools.mountFatigue(el)},
     office3d: {t: '오피스 렌즈 · 모니터 · 서류 · 벽 시계 3D', w: 2, mount: el => mount3D(el, 'of')},
     zcolor: {t: '자이스 변색렌즈 컬러 · 포토퓨전 X', tab: '자이스 변색 컬러', w: 2, mount: mountZColor},
-    consult: {t: '근시 진행 상담 · 또래 비교와 18세 예측', tab: '근시 진행 상담', w: 2, hud: 1, mount: el => MyoTools.mountConsult(el)},
-    growth: {t: '영유아부터 성인까지 · 근시가 진행되는 원리', tab: '성장과 근시 진행 원리', w: 2, hud: 1, mount: el => MyoTools.mountGrowth(el)},
+    consult: {t: '근시 진행 상담 · 또래 비교와 18세 예측', tab: '근시 진행 상담', w: 2, fx: 1, mount: el => MyoTools.mountConsult(el)},
+    growth: {t: '영유아부터 성인까지 · 근시가 진행되는 원리', tab: '성장과 근시 진행 원리', w: 2, fx: 1, mount: el => MyoTools.mountGrowth(el)},
     blue1: {t: '블루라이트 · 어디가 차단되나', compact: true, mount: mountBlue1},
     dist1: {t: '설계별 왜곡', compact: true, mount: mountDist1},
     thick1: {t: '굴절률별 두께', compact: true, mount: mountThick1},
@@ -102,7 +102,7 @@
     tint: {t: '선글라스 · 농도와 편광 비교', w: 2, mount: el => Sim.mountTint(el)},
     photo: {t: '변색 · 실내에서 야외로', tab: '변색 시연', w: 2, mount: el => Sim.mountTint(el, {type: 'photo'})},
     axial: {t: '왜 근시가 늘까요? · 성장기 안구 길이', w: 2, mount: mountAxial},
-    myopia: {t: '근시 억제 렌즈의 원리', tab: '근시 억제 렌즈 원리', w: 2, hud: 1, mount: el => MyoTools.mountControl(el)},
+    myopia: {t: '근시 억제 렌즈의 원리', tab: '근시 억제 렌즈 원리', w: 2, fx: 1, mount: el => MyoTools.mountControl(el)},
     refraction: {t: '근시 · 원시 · 난시와 교정', w: 2, mount: el => Sim.mountRefraction(el)},
     glare: {t: '빛번짐 · 야간 운전 시야', w: 2, mount: el => Sim.mountGlare(el)}
   };
@@ -123,7 +123,7 @@
   Mini.html = (name, ctx) => {
     const ids = setOf(name, ctx); if (!ids || !ids.length) return '';
     const row = ids.every(k => PANELS[k].compact), tabs = !row && ids.length > 1;               // 여러 개면 탭으로 하나씩 보여줌
-    return `<section class="minis ${row ? 'minis--row' : ''} ${tabs ? 'minis--tabs' : ''}">${tabs ? `<div class="seg mini-tabs">${ids.map((k, i) => `<button type="button" class="${i ? '' : 'is-on'}" data-mt="${k}">${esc(PANELS[k].tab || PANELS[k].t)}</button>`).join('')}</div>` : ''}${ids.map((k, i) => `<div class="mini ${PANELS[k].w === 2 ? 'mini--w' : ''} ${PANELS[k].hud ? 'mini--hud' : ''} ${tabs && i ? 'is-off' : ''}" data-mini="${k}"><h4>${esc(PANELS[k].t)}</h4><div class="mini__b"></div></div>`).join('')}</section>`;
+    return `<section class="minis ${row ? 'minis--row' : ''} ${tabs ? 'minis--tabs' : ''}">${tabs ? `<div class="seg mini-tabs">${ids.map((k, i) => `<button type="button" class="${i ? '' : 'is-on'}" data-mt="${k}">${esc(PANELS[k].tab || PANELS[k].t)}</button>`).join('')}</div>` : ''}${ids.map((k, i) => `<div class="mini ${PANELS[k].w === 2 ? 'mini--w' : ''} ${PANELS[k].hud ? 'mini--hud' : ''} ${PANELS[k].fx ? 'mini--fx' : ''} ${tabs && i ? 'is-off' : ''}" data-mini="${k}"><h4>${esc(PANELS[k].t)}</h4><div class="mini__b"></div></div>`).join('')}</section>`;
   };
   const mountCard = card => {
     if (card.dataset.m) return; card.dataset.m = '1';

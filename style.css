@@ -891,3 +891,208 @@ button.pg-c:not(.pg-o):not(.pg-f):not(.pg-vc):not(.pg-dc){flex-direction:row;gap
 .fx-black ul{margin:auto 0 0;padding:0;list-style:none;display:grid;gap:.3rem}.fx-black li{display:flex;justify-content:space-between;gap:.6rem;font-size:.78rem;padding-top:.3rem;border-top:1px solid rgba(255,255,255,.22)}.fx-black li span{color:#c4e1d9;font-weight:700}.fx-black li b{font-weight:850}.fx-black li b.g{color:#b3f0da}
 .fx .fx-cap{margin:0;font-size:.74rem;line-height:1.45;color:var(--gr)}.fx .fx-cap b{color:var(--ink)}
 @media (max-width:1200px){.fx{grid-template-columns:1fr}.fx-eyes,.fx-row{grid-template-columns:1fr}}
+
+
+/* ═════ v5 · 어린이 근시 3탭: 레퍼런스(주식 앱 소개 영상) 스타일 — 흰 바탕 · 휴대폰 화면 · 민트 · 짙은 청록 카드 ═════ */
+.minis--tabs .mini--fx{display:flex;flex-direction:column;height:32rem}
+.minis--tabs .mini--fx.is-off{display:none}
+.mini--fx .mini__b{flex:1;min-height:0}
+.mini--fx .mini__b>.fx,.mini--fx .mini__b>.cs{height:100%}
+/* 성장 · 억제 렌즈: 휴대폰 안의 구성 요소 (피로감소와 공통) */
+.fx-play{margin-left:auto;width:1.9rem;height:1.9rem;border-radius:50%;border:0;background:var(--dark);color:#fff;font-size:.72rem;font-weight:900;cursor:pointer;display:grid;place-items:center}
+.fx-hd i{margin-left:auto}
+.fx-pills button{cursor:pointer}
+.fx-cutp--hy{background:#f2b84b}.fx-cutp--my{background:#ee8070}.fx-cutp--ok{background:var(--mint)}
+.fx-note{font-weight:700;line-height:1.35}.fx-note b{color:var(--ink)}
+/* 성장 */
+.fx-main--g{grid-template-rows:auto auto 1fr}
+.fx-lineup{padding:.3rem .6rem;border-radius:1.1rem;background:#fff;border:1.5px solid var(--ln);box-shadow:0 8px 22px rgba(40,70,70,.06)}
+.fx-ppl{width:100%;height:9.4rem;display:block}.fx-ppl .pp{cursor:pointer;outline:none}.fx-ppl .pp:focus-visible rect{stroke:var(--mint);stroke-width:2}
+.fx--g .fx-eye{height:10.2rem}
+.fx-black--g{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1.3rem;align-items:center;overflow:hidden}
+.fx-black--g .fx-bt{display:grid;gap:.45rem;min-width:0}.fx-black--g h3{margin:0;font-size:.9rem;font-weight:650;letter-spacing:-.01em;line-height:1.55;color:#f3fbf8}.fx-black--g h3 b{font-weight:900;color:#b3f0da}
+.fx-black--g ul{margin:0}.fx-black--g li b.g{color:#ffd1c9}
+.fx-vis{display:flex;gap:.6rem}.fx-vis figure{margin:0;text-align:center}.fx-vis figure>div{width:7.4rem;height:4.6rem;border-radius:.8rem;overflow:hidden;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.18)}.fx-vis svg{display:block;width:100%;height:100%}
+.fx-vis figcaption{margin-top:.3rem;font-size:.7rem;font-weight:800;color:#c4e1d9}
+/* 근시 억제 렌즈 */
+.fx-main--c{grid-template-columns:minmax(0,1fr) 16.5rem;grid-template-rows:1fr}
+.fx-eyecard{border-radius:1.1rem;background:#fff;border:1.5px solid var(--ln);box-shadow:0 8px 22px rgba(40,70,70,.06);display:grid;min-height:0;padding:.4rem}.fx-eyebig{width:100%;height:100%;display:block}
+.fx-black--c h3{margin:0;font-size:1.3rem;font-weight:850;letter-spacing:-.04em;line-height:1.3}
+.fx-black--c .ct-steps{display:flex;flex-direction:column;gap:.35rem;margin-top:auto}.fx-black--c .ct-steps ul{margin:0;padding:0;list-style:none;display:grid;gap:.3rem}
+.fx-black--c li{flex-direction:column;gap:.1rem}.fx-black--c li span{font-size:.72rem}.fx-black--c li b{font-size:.84rem}
+.ct-gauge{height:.55rem;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden}.ct-gauge u{display:block;height:100%;background:#b3f0da;border-radius:99px;transition:width .1s}
+.ct-steps p{margin:.2rem 0 0;font-size:.66rem;line-height:1.5;color:#c4e1d9}
+@media (max-width:1200px){.fx-main--c{grid-template-columns:1fr}.fx-black--g{grid-template-columns:1fr}}
+
+/* 근시 진행 상담 */
+.mini--fx .cs{display:flex;flex-direction:column;gap:.65rem}
+.cs-top{display:flex;align-items:baseline;gap:.8rem}.cs-top b{font-size:1.05rem;font-weight:900;color:#26333f}.cs-top span{font-size:.74rem;font-weight:700;color:#6b7684}
+.mini--fx .cs-in{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;align-items:flex-end;padding:.65rem .95rem;border-radius:1.1rem;background:#f5f8f8;border:1.5px solid #e6ebec;margin:0}
+.mini--fx .cs-f label{color:#6b7684;font-size:.7rem;font-weight:800}.mini--fx .cs-f label em{color:#2bbf95}
+.mini--fx .cs-st{background:#fff;border:1.5px solid #e6ebec;border-radius:99px;padding:.15rem;gap:.25rem}
+.mini--fx .cs-st button{width:2.1rem;height:2.1rem;border-radius:50%;background:#e9ebee;color:#38645f;border:0;box-shadow:none;font-size:1.2rem;font-weight:900}
+.mini--fx .cs-st b{color:#26333f}.mini--fx .cs-st b small{color:#6b7684}
+.mini--fx .seg{background:#fff;border:1.5px solid #e6ebec;border-radius:99px;padding:.15rem}.mini--fx .seg button{border-radius:99px;color:#5b6370;font-weight:850}.mini--fx .seg button.is-on{background:#38645f;color:#fff;box-shadow:none}
+.mini--fx .cs-kid span{color:#6b7684}.mini--fx .cs-kid span b{color:#26333f}
+.mini--fx .cs-res{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:.9rem;flex:1;min-height:0;align-items:stretch}
+.mini--fx .cs-chart{background:#fff;border:1.5px solid #e6ebec;border-radius:1.1rem;box-shadow:0 8px 22px rgba(40,70,70,.07);padding:.7rem .9rem;display:flex;flex-direction:column;min-height:0}
+.mini--fx .cs-chart h5{color:#26333f}.mini--fx .cs-chart h5 small{color:#6b7684}
+.mini--fx .cs-chart .cs-svg{flex:1 1 0;min-height:0;width:100%;height:100%}
+.mini--fx .cs-side{display:flex;flex-direction:column;gap:.55rem;min-height:0}
+.mini--fx .cs-risk{background:#fff;border:1.5px solid #e6ebec;border-radius:1.1rem;padding:.7rem .85rem;display:grid;gap:.45rem}.mini--fx .cs-risk h5{color:#26333f}
+.mini--fx .cs-risk--red{background:#fdeceb;border-color:#f6c6c0}.mini--fx .cs-risk--orange{background:#fff4e1;border-color:#f4d9a6}.mini--fx .cs-risk--green{background:#e6f8f1;border-color:#b9e8d6}.mini--fx .cs-risk--blue{background:#eaf1ff;border-color:#c5d6fa}
+.mini--fx .cs-vs{background:rgba(255,255,255,.75);border-radius:.8rem}.mini--fx .cs-vs small{color:#6b7684}.mini--fx .cs-vs b{color:#6b7684;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.mini--fx .cs-vs b.me{color:#d99a14}.mini--fx .cs-vs i{color:#ee8070}
+.mini--fx .cs-diff{color:#3b4856}.mini--fx .cs-diff .bad{color:#e0604e}.mini--fx .cs-diff .ok{color:#1f9d78}
+.mini--fx .cs-lv{background:rgba(255,255,255,.75);border-radius:.8rem}.mini--fx .cs-lv b{color:#26333f}.mini--fx .cs-lv span{color:#4d5a67}
+.mini--fx .cs-sol{background:linear-gradient(150deg,#3f7a71,#2c5651);color:#f3fbf8;border:0;border-radius:1.1rem;padding:.7rem .9rem}.mini--fx .cs-sol .gold{color:#ffe29a}
+.mini--fx .cs-sum{background:#fdeceb;border:1.5px solid #f6c6c0;border-radius:1.1rem}.mini--fx .cs-sum small{color:#d96a5a}.mini--fx .cs-sum b{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.mini--fx .cs-sum b.bad{color:#e0604e}.mini--fx .cs-sum em{color:#d96a5a}
+.mini--fx .cs-sum--g{background:#e6f8f1;border-color:#b9e8d6}.mini--fx .cs-sum--g small{color:#1f9d78}.mini--fx .cs-sum--g b.ok{color:#1f9d78}.mini--fx .cs-sum--g p{border-color:#b9e8d6;color:#4d5a67}.mini--fx .cs-sum--g p b{color:#1f9d78}
+.mini--fx .cs-go{width:100%;justify-content:center;border-radius:99px;background:#38645f;color:#fff;border:0}.mini--fx .btn--line.cs-go{background:#fff;color:#38645f;border:1.5px solid #cfe0dc}
+.mini--fx .cs-tog{background:#fff;border:1.5px solid #2bbf95;color:#1f9d78;border-radius:99px}.mini--fx .cs-tog.is-on{background:#2bbf95;color:#fff}
+.mini--fx .mini-cap{color:#8a929c}
+
+/* ═════ v5.1 · 휴대폰 틀 제거 + 조작 버튼은 오른쪽 패널에 크게 ═════ */
+.fx{grid-template-columns:19rem minmax(0,1fr) 15.5rem;gap:1.1rem}
+.fx-left{display:flex;flex-direction:column;gap:.55rem;padding:.9rem 1rem;border-radius:1.1rem;background:#fff;border:1.5px solid var(--ln);box-shadow:0 8px 22px rgba(40,70,70,.06);min-width:0}
+.fx-left .fx-chart{margin:auto 0;width:100%}
+.fx-ctl{display:flex;flex-direction:column;gap:.55rem;padding:.9rem .85rem;border-radius:1.1rem;background:var(--soft);border:1.5px solid var(--ln);min-width:0}
+.fx-ctl h6{margin:0 0 -.15rem;font-size:.78rem;font-weight:900;color:var(--gr);letter-spacing:.01em}
+.fx-ctl .fx-pills{flex-direction:column;gap:.45rem}
+.fx-ctl .fx-pills--h{flex-direction:row}
+.fx-ctl .fx-pills button{flex:none;min-height:3.3rem;padding:.5rem .9rem;font-size:.98rem;border-radius:99px;display:flex;align-items:center;justify-content:space-between;gap:.5rem;text-align:left}
+.fx-ctl .fx-pills--h button{justify-content:center;font-size:1rem}
+.fx-ctl .fx-pills--v{flex:none}
+.fx-ctl .fx-pills button small{font-size:.72rem;font-weight:700;opacity:.7}
+.fx-ctl .fx-pills button.is-on small{opacity:.85}
+.fx-ctl .fx-pills--s button{background:#fff}
+.fx-ctl .fx-pills button:not(.is-on){background:#fff;border:1.5px solid var(--ln)}
+.fx-ctl .fx-play{margin:0;width:100%;height:3rem;border-radius:99px;font-size:.95rem;gap:.4rem;background:var(--mint)}
+.fx-ctl .fx-play::after{content:" 자동 재생";font-size:.92rem;font-weight:850}
+.fx-ctl .fx-swipe{height:3.6rem;margin-top:auto}
+.fx-ctl .fx-swh{width:3rem;height:3rem;top:.3rem;left:.3rem}.fx-ctl .fx-swh svg{width:1.4rem;height:1.4rem}
+.fx-ctl .fx-swt{padding-left:3rem;font-size:.84rem;white-space:normal;text-align:center;line-height:1.2;padding-right:.6rem}
+.fx-main--c{grid-template-columns:minmax(0,1fr) 14.5rem}
+@media (max-width:1200px){.fx{grid-template-columns:1fr}}
+.fx--g .fx-ppl{height:8.1rem}
+.fx--g .fx-eye{height:9.4rem}
+.fx-ctl .fx-swt{display:flex;align-items:center;justify-content:flex-end;padding:0 1.2rem;font-size:1rem;font-weight:850}
+.fx-ctl .fx-swt[data-s=l]{justify-content:flex-start}
+
+/* 근시 진행 상담: 입력 버튼은 오른쪽 패널에 크게 */
+.mini--fx .cs{display:grid;grid-template-columns:minmax(0,1fr) 16.5rem;grid-template-rows:auto minmax(0,1fr) auto;gap:.6rem 1.1rem}
+.mini--fx .cs-top{grid-column:1/-1;grid-row:1}
+.mini--fx .cs-res{grid-column:1;grid-row:2}
+.mini--fx .cs-in{grid-column:2;grid-row:2;flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:.5rem;padding:.8rem .85rem;overflow:hidden}
+.mini--fx .cs>.mini-cap{grid-column:1/-1;grid-row:3;margin:0}
+.mini--fx .cs-in .cs-f{display:grid;gap:.25rem}
+.mini--fx .cs-in .cs-st{display:grid;grid-template-columns:3rem 1fr 3rem;align-items:center;padding:.2rem;border-radius:99px}
+.mini--fx .cs-in .cs-st button{width:3rem;height:3rem;font-size:1.5rem}
+.mini--fx .cs-in .cs-st b{text-align:center;font-size:1.15rem}
+.mini--fx .cs-in .seg{display:flex;gap:.2rem}
+.mini--fx .cs-in .seg button{flex:1;min-height:2.7rem;font-size:.9rem;padding:.3rem .5rem}
+.mini--fx .cs-in .cs-f:last-of-type .seg{flex-direction:column}
+.mini--fx .cs-in .cs-kid{display:none}
+.mini--fx .cs-in .cs-f:nth-child(5) .seg{flex-direction:column}
+.mini--fx .cs-in .cs-f:nth-child(5) .seg button{min-height:2.5rem}
+.mini--fx .cs-in{gap:.4rem;padding:.65rem .8rem}
+.mini--fx .cs-in .cs-st button{width:2.7rem;height:2.7rem}.mini--fx .cs-in .cs-st{grid-template-columns:2.7rem 1fr 2.7rem}
+.mini--fx .cs-in .seg button{min-height:2.4rem}.mini--fx .cs-in .cs-f:nth-child(5) .seg button{min-height:2.3rem}
+
+/* v5.2 · 성장: 나이를 사람 그림 옆으로, 눈 크게 / 억제 렌즈: 카드 통합, 눈 크게 */
+.fx-ctl .fx-play{display:flex;align-items:center;justify-content:center;gap:.45rem;white-space:nowrap;padding:0}
+.fx-ctl .fx-play::after{white-space:nowrap}
+.fx--g,.fx--c{grid-template-columns:minmax(0,1fr) 15.5rem}
+.fx--c{grid-template-columns:minmax(0,1fr) 17rem}
+.fx-main--g{grid-template-rows:auto minmax(0,1fr) auto}
+.fx-lineup{display:grid;grid-template-columns:15.5rem minmax(0,1fr);gap:.9rem;align-items:center;padding:.4rem .9rem .4rem .9rem}
+.fx-agebox{display:flex;flex-direction:column;gap:.2rem;min-width:0;padding-right:.9rem;border-right:1.5px solid var(--ln)}
+.fx-agebox .fx-big b{font-size:2.5rem}
+.fx-agebox .fx-chart{width:100%;height:auto;margin:0}
+.fx-ppl{height:8.2rem}
+.fx--g .fx-eyes{min-height:0}
+.fx--g .fx-eye-c{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);padding:.4rem .8rem .4rem .3rem}
+.fx--g .fx-eye{height:auto;max-height:14rem}
+.fx-black--g{padding:.7rem 1.1rem}
+.fx-vis figure>div{width:6.4rem;height:3.8rem}
+/* 억제 렌즈: 큰 한 장 카드 */
+.fx-main--c{display:block;grid-template-columns:none}
+.fx-eyecard{height:100%;grid-template-columns:14rem minmax(0,1fr);gap:.8rem;padding:.8rem 1rem .8rem 1.1rem;align-items:stretch}
+.fx-eyecard .fx-eyebig{align-self:center;height:auto;max-height:100%}
+.fx-eyetxt{display:flex;flex-direction:column;gap:.5rem;padding-right:.9rem;border-right:1.5px solid var(--ln);min-width:0}
+.fx-eyetxt .ct-k{font-size:.78rem;font-weight:900;color:var(--mint)}
+.fx-eyetxt .ct-h{margin:0;font-size:1.3rem;font-weight:850;letter-spacing:-.04em;line-height:1.3;color:#26333f}
+.fx-eyetxt .ct-steps{display:flex;flex-direction:column;gap:.5rem;margin-top:auto}
+.fx-eyetxt .ct-steps ul{margin:0;padding:0;list-style:none;display:grid;gap:.45rem}
+.fx-eyetxt .ct-steps li{display:flex;flex-direction:column;gap:.1rem;padding-top:.4rem;border-top:1px solid var(--ln)}
+.fx-eyetxt .ct-steps li span{font-size:.72rem;font-weight:700;color:var(--gr)}
+.fx-eyetxt .ct-steps li b{font-size:.9rem;font-weight:850;color:#26333f}.fx-eyetxt .ct-steps li b.g{color:#1f9d78}
+.fx-eyetxt .ct-gauge{background:#e9ecef}.fx-eyetxt .ct-gauge u{background:var(--mint)}
+.fx-eyetxt .ct-steps p{margin:.1rem 0 0;font-size:.66rem;line-height:1.5;color:#8a929c}
+.fx-chartbox{flex:1;min-height:0;display:flex;flex-direction:column;gap:.2rem;padding:.6rem .7rem;border-radius:1rem;background:#fff;border:1.5px solid var(--ln)}
+.fx-chartbox .fx-big b{font-size:2rem}.fx-chartbox .fx-big small{font-size:.66rem;line-height:1.3}
+.fx-chartbox .fx-chart{margin:auto 0;width:100%;height:auto}
+
+/* v5.3 · 성장: 왼쪽에 나이·그래프·사람(세로), 가운데 눈은 크게 */
+.fx--g{grid-template-columns:16rem minmax(0,1fr) 15.5rem}
+.fx-left--g{gap:.25rem;padding:.7rem .8rem}
+.fx-left--g .fx-big b{font-size:2.4rem}
+.fx-left--g .fx-chart{margin:0;width:100%;height:auto}
+.fx-kids{flex:1;min-height:0;margin-top:.2rem}
+.fx-kids .fx-ppl{width:100%;height:100%}
+.fx-main--g{grid-template-rows:minmax(0,1fr) auto}
+.fx--g .fx-eyes{min-height:0}
+.fx--g .fx-eye-c{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:.3rem;padding:.5rem .8rem .6rem;align-items:stretch}
+.fx--g .fx-eye{height:100%;max-height:none;min-height:0}
+.fx--g .fx-t{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .7rem;justify-items:unset}
+.fx--g .fx-t b.num{font-size:1.7rem}
+.fx--g .fx-t .fx-note{flex-basis:100%}
+.fx-kids{position:relative;overflow:hidden}
+.fx-kids .fx-ppl{position:absolute;inset:0}
+
+/* v5.4 · 성장: 사람 한 명이 한 자리에서 자람 / 눈 카드 정리 */
+.fx--g{grid-template-columns:13.5rem minmax(0,1fr) 15.5rem}
+.fx-left--g{padding:.7rem .7rem .6rem}
+.fx-kids{margin-top:.1rem}
+.fx-kids .fx-ppl{pointer-events:none}
+.fx--g .fx-eye-c{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto;gap:.2rem;padding:.8rem 1.1rem .9rem}
+.fx--g .fx-eh{display:flex;justify-content:space-between;align-items:center}
+.fx--g .fx-eh .fx-chip{font-size:.9rem;padding:.25rem .8rem}
+.fx--g .fx-eh .fx-cutp{font-size:.9rem;padding:.25rem .8rem}
+.fx--g .fx-eye{width:100%;height:100%;min-height:0;align-self:center}
+.fx--g .fx-ef{display:flex;justify-content:space-between;align-items:flex-end;gap:.8rem;padding-top:.4rem;border-top:1.5px solid var(--ln)}
+.fx--g .fx-ef small{display:block;font-size:.74rem;font-weight:800;color:var(--gr)}
+.fx--g .fx-ef b.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:2.1rem;font-weight:800;letter-spacing:-.04em;line-height:1}
+.fx--g .fx-ef b em{font-size:.95rem;font-style:normal;margin-left:.15rem;color:var(--gr)}
+.fx--g .fx-eye-c--n .fx-ef b.num{color:#d96a5a}.fx--g .fx-eye-c--r .fx-ef b.num{color:var(--mint)}
+.fx--g .fx-ef .fx-note{font-size:.88rem;font-weight:750;color:#4d5a67;text-align:right;padding-bottom:.15rem}.fx--g .fx-ef .fx-note b{color:var(--ink)}
+
+/* v5.5 · 근시 진행 상담: 가운데는 '읽는 정보' 카드, 버튼은 전부 오른쪽 패널 */
+.mini--fx .cs-in::before{content:"설정 바꾸기";font-size:.78rem;font-weight:900;color:#6b7684;margin-bottom:-.1rem}
+.mini--fx .cs-in .cs-f:nth-child(5) .seg,.mini--fx .cs-in .cs-f:nth-child(6) .seg{flex-direction:row}
+.mini--fx .cs-in .cs-f:nth-child(5) .seg button,.mini--fx .cs-in .cs-f:nth-child(6) .seg button{min-height:2.4rem}
+.mini--fx .cs-side{gap:.6rem}
+.mini--fx .cs-k{display:block;font-size:.74rem;font-weight:900;color:#6b7684;letter-spacing:.01em}
+.mini--fx .cs-risk{gap:.5rem;padding:.9rem 1rem}
+.mini--fx .cs-lvl{font-size:1.45rem;font-weight:900;letter-spacing:-.03em;line-height:1.2;color:#26333f}
+.mini--fx .cs-risk--red .cs-lvl{color:#d9503e}.mini--fx .cs-risk--orange .cs-lvl{color:#c9840a}.mini--fx .cs-risk--green .cs-lvl{color:#17916c}.mini--fx .cs-risk--blue .cs-lvl{color:#3f6fd1}
+.mini--fx .cs-diff{margin:0;font-size:.92rem;font-weight:700;line-height:1.4}
+.mini--fx .cs-tip{padding:.8rem 1rem;border-radius:1.1rem;background:#f5f8f8;border:1.5px solid #e6ebec;display:grid;gap:.3rem}
+.mini--fx .cs-tip p{margin:0;font-size:.88rem;font-weight:650;line-height:1.45;color:#3b4856}.mini--fx .cs-tip p b{font-weight:900;color:#26333f}
+.mini--fx .cs-sum{padding:.9rem 1rem;display:grid;gap:.25rem}
+.mini--fx .cs-sum small{font-size:.76rem;font-weight:900}
+.mini--fx .cs-sum b{font-size:2.2rem;line-height:1.1}
+.mini--fx .cs-sum em{font-size:.8rem;font-style:normal;font-weight:700}
+.mini--fx .cs-in::before{display:none}
+.mini--fx .cs-in{gap:.3rem;padding:.55rem .75rem}
+.mini--fx .cs-in .cs-f{gap:.18rem}
+.mini--fx .cs-in .cs-st button{width:2.5rem;height:2.5rem}.mini--fx .cs-in .cs-st{grid-template-columns:2.5rem 1fr 2.5rem}
+.mini--fx .cs-in .seg button{min-height:2.25rem}
+.mini--fx .cs-sum--g p{margin:0;padding:.35rem 0 0;display:block;font-size:.85rem;font-weight:700;line-height:1.4;border-top:1px solid #b9e8d6}
+.mini--fx .cs-res{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+.mini--fx .cs-res{grid-template-columns:minmax(0,1fr) 17.5rem}
+.mini--fx .cs-chart{padding:.8rem 1rem}
+.mini--fx .cs-chart h5{font-size:1rem}
+.mini--fx .cs-lvl{font-size:1.3rem}
+.mini--fx .cs-sum b{font-size:2rem}
+.mini--fx .cs-slot{flex:1 1 0;min-height:0;display:flex}
+.mini--fx .cs-slot .cs-svg{width:100%;height:100%}
