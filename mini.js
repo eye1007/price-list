@@ -79,7 +79,16 @@
     el.innerHTML = `<div class="zc"><img src="${esc(u)}" alt="자이스 포토퓨전 X 변색 컬러" decoding="async"></div>`;
     return {};
   }
+  /* 3D 시뮬레이션(three.js)은 필요할 때만 불러옴 */
+  function mount3D(el, kind) {
+    let h = null, dead = false;
+    el.innerHTML = '<div class="sim-note">3D 화면을 불러오는 중…</div>';
+    import('./sim3d.js').then(M => { if (dead || !document.body.contains(el)) return; el.innerHTML = ''; h = kind === 'of' ? M.mountOffice(el) : M.mountProg3D(el, {tier: 3, add: (typeof S !== 'undefined' && S.add) || 1.5}); })
+      .catch(() => { if (!dead) el.innerHTML = '<div class="sim-note">3D 화면을 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</div>'; });
+    return {destroy() { dead = true; if (h && h.destroy) h.destroy(); h = null; }};
+  }
   const PANELS = {
+    office3d: {t: '오피스 렌즈 · 모니터 · 서류 · 벽 시계 3D', w: 2, mount: el => mount3D(el, 'of')},
     zcolor: {t: '자이스 변색렌즈 컬러 · 포토퓨전 X', tab: '자이스 변색 컬러', w: 2, mount: mountZColor},
     consult: {t: '근시 진행 상담 · 또래 비교와 18세 예측', tab: '근시 진행 상담', w: 2, hud: 1, mount: el => MyoTools.mountConsult(el)},
     growth: {t: '영유아부터 성인까지 · 근시가 진행되는 원리', tab: '성장과 근시 진행 원리', w: 2, hud: 1, mount: el => MyoTools.mountGrowth(el)},
@@ -97,6 +106,7 @@
     glare: {t: '빛번짐 · 야간 운전 시야', w: 2, mount: el => Sim.mountGlare(el)}
   };
   const SETS = [                                             // 분류 이름 → 하단 시뮬레이션 (위에서부터 먼저 맞는 것)
+    [/^오피스/, ['office3d']],
     [/근시 정보/, ['axial', 'myopia']],
     [/어린이 근시/, ['consult', 'growth', 'myopia']],
     [/시력 이상/, ['refraction']],

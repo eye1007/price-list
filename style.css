@@ -658,7 +658,7 @@ button.pg-c:not(.pg-o):not(.pg-f):not(.pg-vc):not(.pg-dc){flex-direction:row;gap
 .mini .mini-cap{margin-top:.3rem;font-size:.66rem}
 /* 성장 원리: 눈 그림(왼쪽) · 수치와 그래프(오른쪽) 두 열 */
 .mini .rf--pro{max-width:46rem;margin:0 auto}
-.mini .rf-ctl{justify-content:center}
+.mini .rf-ctl{justify-content:flex-start}
 
 /* ═════ 어린이 근시 3종 · 블루프린트 HUD 스타일 (레퍼런스 영상: 격자 · FIG 라벨 · 청록 선화 · 큰 숫자) ═════ */
 .mini--hud{--hb:#f6f9ff;--ht:#00957b;--hc:#ef3340;--ha:#e08600;--hd:#3d5468;--hi:#0b1f33;--hl:rgba(0,149,123,.55);
@@ -810,3 +810,48 @@ button.pg-c:not(.pg-o):not(.pg-f):not(.pg-vc):not(.pg-dc){flex-direction:row;gap
 .pg-f--s{align-items:center;justify-content:center;text-align:center;padding:.22rem .5rem}
 .pg-fl{padding:.2rem .3rem}
 .pgb .pg-c s{text-decoration:none}
+
+/* 시뮬레이션 창은 탭을 바꿔도 크기가 변하지 않도록 고정 */
+.sheet--lab{height:min(100%,56rem)}
+.sheet--lab .sh-b{display:flex;flex-direction:column;overflow:hidden}
+.sheet--lab .lab{flex:1;height:auto}
+
+/* 굴절·교정: 교정 버튼을 정시·근시·원시·난시 바로 옆에 붙임 */
+.rf-ctl{justify-content:flex-start;gap:.7rem}
+.rf-ctl .seg button{padding:0 .85rem}
+
+/* 어린이 근시 3탭: 조작 줄을 헤더 바로 아래 같은 위치에 */
+.gr{grid-template-rows:auto auto minmax(0,1fr) auto}
+.gr .gr-ctl{grid-column:1/-1;margin:0 0 .3rem}
+.ct{grid-template-rows:auto auto minmax(0,1fr)}
+.ct .ct-ctl{grid-column:1/-1;margin:0 0 .3rem}
+.cs-st b{line-height:1.1}.cs-st b small{display:block;margin-top:.1rem;font-size:.62rem;font-weight:750;letter-spacing:0;color:var(--hd)}
+
+/* 다초점 3D 시점 전환 */
+.p3w-bar{display:flex;justify-content:flex-end;margin-bottom:.6rem}
+.p3w-b .p3-ctl{margin-top:.7rem}
+.gl-card{grid-template-columns:minmax(0,56%) minmax(0,1fr);gap:.7rem}
+.gl-card:not(.gl-card--v){height:8.3rem;grid-template-rows:minmax(0,1fr)}
+.gl-card:not(.gl-card--v) canvas{height:100%;min-height:0}
+.of-3d canvas{transition:opacity .22s ease}.of-3d.is-cut canvas{opacity:0}
+/* 다초점 3D: 렌즈 너머 1인칭 화면 */
+.pm-fp{position:relative;width:100%;aspect-ratio:1;border-radius:.5rem;background:#eef2f6}
+.pm-fp canvas,.pm-fp svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.of-card h5 em{margin-left:.4rem;padding:.08rem .45rem;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-style:normal;font-size:.66rem;font-weight:850}
+/* 다초점 3D: 렌즈 너머 모습을 크게 (왼쪽 3D와 비율 조정) */
+.of--prog{grid-template-columns:minmax(0,1fr) 26rem}
+.of--prog .of-3d{min-height:30rem}
+.of--prog .of-card{display:flex;flex-direction:column;justify-content:center}
+.of--prog .of-card h5{display:flex;align-items:center;gap:.4rem;font-size:.9rem}
+.of--prog .of-card h5 .of-st{margin:0 0 0 auto}
+@media (max-width:900px){.of--prog{grid-template-columns:1fr}}
+.p3-ctl--l{justify-content:flex-start;gap:.8rem 1.6rem}
+
+/* 다초점 제목 옆 3D 시뮬레이션 버튼 · 오피스 분류 하단 3D */
+.stage__head .mx3d{min-height:2.3rem;padding:0 1rem;font-size:.9rem}
+.mini .of-3d{min-height:24rem}.mini .p3-ctl{margin-top:.6rem}.mini .sim-cap{margin:.5rem 0 0}
+.mini .of--prog{grid-template-columns:minmax(0,1fr) 19.5rem}.mini .of--prog .of-3d{min-height:20rem}
+/* 다초점 3D 시뮬레이션 버튼: 눈에 띄는 색 */
+.stage__head .mx3d{background:linear-gradient(135deg,#ff6a3d,#ff2e63);color:#fff;border:0;box-shadow:0 4px 14px rgba(255,64,90,.42);font-weight:900;letter-spacing:-.01em;transition:transform .12s,box-shadow .12s}
+.stage__head .mx3d:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,64,90,.55)}
+.stage__head .mx3d .b3d{background:#fff;color:#ff2e63;margin-right:.35rem}

@@ -14,7 +14,8 @@ function canvasTex(w, h, draw) {
 const rand = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(7);   // 항상 같은 거리 모양이 나오도록 고정 시드
 const pick = a => a[Math.floor(rand() * a.length)];
 const HANGUL = '가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허고노도로모보소오조초코토포호구누두루무부수우주추쿠투푸후';
-const words = n => Array.from({length: n}, () => Array.from({length: 2 + Math.floor(rand() * 3)}, () => pick(HANGUL)).join('')).join(' ');
+const VOC = ['안경','렌즈','시력','검사','상담','예약','고객','도수','맞춤','코팅','근시','원시','난시','누진','다초점','설계','두께','편안한','선명한','자연스러운','시야','착용','관리','점검','조절','추천','제작','수령','방문','피로','건조','운전','독서','휴대폰','모니터','사무실','가족','여행','사진','건강','생활','습관','눈','안구','보호','정기','검진','변화','확인'];
+const words = n => Array.from({length: n}, () => pick(VOC)).join(' ');
 
 /* 지붕·창문이 있는 건물 외벽 */
 function facadeTex(base, glass) {
@@ -44,11 +45,11 @@ function screenTex() {
     g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h); g.fillStyle = '#0b6b7e'; g.fillRect(0, 0, w, 34);
     g.fillStyle = '#fff'; g.font = '800 18px sans-serif'; g.fillText('렌즈 상담 노트', 14, 23);
     g.fillStyle = '#15171c'; g.font = '800 22px sans-serif'; g.fillText('오늘의 일정', 18, 70);
-    g.fillStyle = '#4b5563'; g.font = '600 15px sans-serif'; for (let i = 0; i < 9; i++) g.fillText(words(6), 18, 100 + i * 24);
-    g.fillStyle = '#cfe4ea'; g.fillRect(360, 54, 130, 110);
+    g.fillStyle = '#4b5563'; g.font = '600 15px sans-serif';
+    ['09:30  김서연 님 · 시력검사 및 상담', '10:30  박민준 님 · 누진다초점 맞춤', '11:30  이도윤 님 · 어린이 근시 관리', '13:30  최하은 님 · 블루라이트 렌즈', '14:30  정우진 님 · 안경 수령', '15:30  한지민 님 · 도수 조정', '16:30  오세훈 님 · 변색렌즈 상담', '17:30  신유나 님 · 콘택트렌즈 예약', '18:00  마감 · 재고 확인'].forEach((t, i) => g.fillText(t, 18, 100 + i * 24));
+    g.fillStyle = '#cfe4ea'; g.fillRect(360, 54, 130, 110); g.fillStyle = '#0b6b7e'; g.font = '800 13px sans-serif'; g.fillText('오늘 예약 8건', 372, 112);
   });
-}
-function phoneTex() {
+}function phoneTex() {
   return canvasTex(160, 330, (g, w, h) => {
     g.fillStyle = '#0f1c2e'; g.fillRect(0, 0, w, h);
     g.fillStyle = '#fff'; g.font = '800 30px sans-serif'; g.fillText('10:24', 34, 70);
@@ -109,7 +110,7 @@ function lensPath(cx, cy, w, h) {
 }
 
 /* ═════════ 다초점 3D 착용 시점 ═════════ */
-export function mountProg3D(el, opt = {}) {
+function mountProgFP(el, opt = {}) {
   const TI = Sim.TIERS, st = {tier: opt.tier || 1, add: opt.add || 1.5, yaw: 0, pitch: 0, hold: 0};
   el.innerHTML = `<div class="p3"><canvas class="p3-gl"></canvas><canvas class="p3-blur"></canvas><div class="p3-tint"></div><svg class="p3-frame"></svg><div class="p3-tags"></div>
       <div class="p3-hint">화면을 끌어 둘러보세요</div></div>
@@ -168,8 +169,8 @@ export function mountProg3D(el, opt = {}) {
   const move = e => { if (!drag) return; st.yaw = clamp(drag.yaw + (e.clientX - drag.x) * .003, -.5, .5); st.pitch = clamp(drag.pitch + (e.clientY - drag.y) * .002, -.22, .22); st.hold = performance.now() + 5000; };
   const up = () => { drag = null; box.classList.remove('is-drag'); };
   box.addEventListener('pointerdown', down); box.addEventListener('pointermove', move); box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
-  el.querySelector('[data-k=tier]').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.tier = +b.dataset.v; el.querySelectorAll('[data-k=tier] button').forEach(x => x.classList.toggle('is-on', x === b)); applyZone(); });
-  const addIn = el.querySelector('.p3-add'); addIn.addEventListener('input', () => { st.add = +addIn.value; el.querySelector('.p3-addv').textContent = '+' + st.add.toFixed(2); applyZone(); });
+  el.querySelector('[data-k=tier]').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.tier = opt.tier = +b.dataset.v; el.querySelectorAll('[data-k=tier] button').forEach(x => x.classList.toggle('is-on', x === b)); applyZone(); });
+  const addIn = el.querySelector('.p3-add'); addIn.addEventListener('input', () => { st.add = opt.add = +addIn.value; el.querySelector('.p3-addv').textContent = '+' + st.add.toFixed(2); applyZone(); });
   const ro = new ResizeObserver(layout); ro.observe(box); layout(); raf = requestAnimationFrame(loop);
   return {
     update() {},
@@ -181,11 +182,12 @@ export function mountProg3D(el, opt = {}) {
 function docTex() {
   return canvasTex(420, 594, (g, w, h) => {
     g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h); g.fillStyle = '#15171c'; g.font = '900 30px sans-serif'; g.fillText('상담 기록지', 30, 56);
-    g.fillStyle = '#0b6b7e'; g.fillRect(30, 72, 120, 6); g.fillStyle = '#374151'; g.font = '600 16px sans-serif';
-    for (let i = 0; i < 22; i++) g.fillText(words(5), 30, 112 + i * 21);
+    g.fillStyle = '#0b6b7e'; g.fillRect(30, 72, 120, 6);
+    const L = [['', '고객명   김서연 (만 34세)'], ['', '방문일   2026. 11. 04'], ['h', '시력 검사'], ['', 'R   S -2.25   C -0.75   AX 180'], ['', 'L   S -2.00   C -0.50   AX 175'], ['', 'PD 62 mm      ADD +1.50'],
+      ['h', '상담 내용'], ['', '· 하루 8시간 이상 모니터 작업'], ['', '· 저녁 운전 시 빛번짐이 불편'], ['', '· 눈의 피로와 건조감 호소'], ['h', '추천 렌즈'], ['', '· 오피스 렌즈 (중간~근거리 중심)'], ['', '· 블루라이트 차단 코팅'], ['', '· 반사 방지(AR) 코팅'], ['h', '메모'], ['', '· 제작 5일 소요, 11/09 수령 예정'], ['', '· 수령 시 착용감 · 도수 재확인']];
+    let y = 112; L.forEach(([k, t]) => { if (k === 'h') { y += 8; g.fillStyle = '#0b6b7e'; g.font = '800 17px sans-serif'; g.fillText(t, 30, y); y += 24; } else { g.fillStyle = '#374151'; g.font = '600 16px sans-serif'; g.fillText(t, 30, y); y += 26; } });
   });
-}
-function clockTex() {
+}function clockTex() {
   return canvasTex(256, 256, (g, w) => {
     g.fillStyle = '#fff'; g.beginPath(); g.arc(128, 128, 120, 0, 7); g.fill(); g.lineWidth = 10; g.strokeStyle = '#1f2937'; g.stroke();
     g.fillStyle = '#1f2937'; g.font = '800 30px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -193,60 +195,49 @@ function clockTex() {
     g.lineCap = 'round'; g.lineWidth = 9; g.beginPath(); g.moveTo(128, 128); g.lineTo(128 + 48, 128 - 30); g.stroke(); g.lineWidth = 6; g.beginPath(); g.moveTo(128, 128); g.lineTo(128 - 20, 128 - 76); g.stroke();
   });
 }
-const OFFICE = {
-  mon:  {n: '모니터 보기', head: [-.06, 0], target: [0, 1.11, -.285], zone: [100, 52], blur: 0, ok: true, title: '모니터는 렌즈 위쪽으로 편하게', msg: '고개를 들지 않아도 렌즈 위쪽의 넓은 중간 거리 영역으로 모니터가 또렷하게 보여요.'},
-  near: {n: '서류 · 휴대폰', head: [-.34, 0], target: [-.2, .766, .12], zone: [100, 128], blur: 0, ok: true, title: '휴대폰 · 서류는 눈만 내려서', msg: '렌즈 아래쪽 근거리 영역이 넓어서 고개를 크게 숙이지 않아도 글씨가 또렷해요.'},
-  dual: {n: '듀얼 모니터', head: [-.06, -.6], target: [.66, 1.11, -.165], zone: [100, 58], blur: 0, ok: true, title: '고개를 돌리면 또렷하게', msg: '옆 모니터는 눈만 돌리기보다 고개를 살짝 돌려 렌즈 가운데로 보면 가장 편하고 선명해요.'},
-  clock: {n: '벽 시계 (2m형)', head: [.07, -.1], target: [.38, 1.6, -2.77], zone: [100, 30], blur: 1.1, ok: true, st: '시계는 알아볼 수 있어요', cam: {az: -.28, el: .1, dist: 4.7, tgt: [.3, 1.35, -1.75]}, title: '벽 시계 정도는 보여요', msg: '2m형 오피스 렌즈는 방 안 거리까지 넓게 보이도록 만든 설계라 벽에 걸린 시계 정도는 볼 수 있어요. 숫자는 살짝 부드럽게 보이고, 운전 · 보행처럼 먼 거리는 일반 안경이나 누진다초점을 사용하세요.'}
-};
-export function mountOffice(el) {
-  let cur = 'mon', head = OFFICE.mon.head.slice(), anim = 0;
-  el.innerHTML = `<div class="of"><div class="of-3d"><canvas></canvas><div class="t3-labels"></div><div class="p3-hint">끌어서 돌려 보세요</div></div>
-      <div class="of-side"><div class="of-card"><h5>오피스 렌즈</h5>
-        <svg viewBox="0 0 200 176" class="of-map" aria-hidden="true"><defs><clipPath id="ofc"><path d="M40,8 H160 Q194,8 194,46 V128 Q194,170 152,170 H48 Q6,170 6,128 V46 Q6,8 40,8 Z"/></clipPath></defs>
-          <g clip-path="url(#ofc)"><rect width="200" height="176" fill="#f8fafc"/>
-            <rect y="0" width="200" height="22" fill="url(#ofh)"/><path d="M0,22 H200 V98 C150,104 130,104 100,104 C70,104 50,104 0,98 Z" fill="#dbeafe"/>
-            <path d="M24,176 C30,132 62,112 100,112 C138,112 170,132 176,176 Z" fill="#dcfce7"/>
-            <path d="M0,98 C26,104 34,128 20,176 H0 Z" fill="#fde2dc"/><path d="M200,98 C174,104 166,128 180,176 H200 Z" fill="#fde2dc"/></g>
-          <defs><pattern id="ofh" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#eef1f5"/><rect width="3" height="8" fill="#dfe3ea"/></pattern></defs>
-          <path d="M40,8 H160 Q194,8 194,46 V128 Q194,170 152,170 H48 Q6,170 6,128 V46 Q6,8 40,8 Z" fill="none" stroke="#475569" stroke-width="2.5"/>
-          <text x="100" y="17" font-size="9" font-weight="800" fill="#94a3b8" text-anchor="middle">먼 거리 △ (시계 정도)</text>
-          <text x="100" y="66" font-size="11" font-weight="800" fill="#1d4ed8" text-anchor="middle">중간 · 모니터</text>
-          <text x="100" y="146" font-size="11" font-weight="800" fill="#15803d" text-anchor="middle">근거리 · 서류</text>
-          <g class="of-dot"><circle r="12" fill="#0b6b7e" opacity=".18"/><circle r="6" fill="#0b6b7e" stroke="#fff" stroke-width="2"/></g></svg>
-        <small>점은 지금 시선이 지나가는 렌즈 위치예요</small></div>
-        <div class="of-card"><h5>보이는 글자</h5><div class="of-read"><b>가나다라마바사</b><span>아자차카타파하</span></div><span class="of-st"></span></div></div></div>
-    <div class="p3-ctl"><div class="seg" data-k="sc">${Object.entries(OFFICE).map(([k, s]) => `<button data-v="${k}" class="${k === cur ? 'is-on' : ''}">${s.n}</button>`).join('')}</div></div>
-    <p class="sim-cap" data-k="cap"></p>`;
-  const box = el.querySelector('.of-3d'), cv = box.querySelector('canvas'), labels = box.querySelector('.t3-labels'), cap = el.querySelector('[data-k=cap]');
-  const dot = el.querySelector('.of-dot'), read = el.querySelector('.of-read'), stTag = el.querySelector('.of-st');
-  const renderer = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  const scene = new THREE.Scene();
+function mapTex() {
+  return canvasTex(256, 160, (g, w, h) => {
+    g.fillStyle = '#f4f7fb'; g.fillRect(0, 0, w, h); g.fillStyle = '#2b7bb9';
+    [[60, 62, 34, 24], [96, 56, 26, 30], [140, 52, 44, 20], [182, 66, 30, 22], [78, 104, 18, 22], [150, 100, 22, 16]].forEach(([x, y, a, b]) => { g.beginPath(); g.ellipse(x, y, a, b, .3, 0, 7); g.fill(); });
+    g.fillStyle = '#0f2238'; g.font = '800 15px sans-serif'; g.fillText('GLOBAL SIGHT', 14, 24); g.fillStyle = '#9fb3cc'; g.fillRect(14, 30, 70, 3);
+  });
+}
+function buildOffice(scene, root = scene) {
   scene.add(new THREE.HemisphereLight(0xffffff, 0xd9dee6, 1.3));
   const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(-2.5, 4, 2.5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
   Object.assign(key.shadow.camera, {left: -3, right: 3, top: 3, bottom: -3, near: .5, far: 12}); scene.add(key);
   const white = new THREE.MeshStandardMaterial({color: 0xf4f5f7, roughness: .75}), grey = new THREE.MeshStandardMaterial({color: 0x9aa3af, roughness: .5, metalness: .3});
-  const dark = new THREE.MeshStandardMaterial({color: 0x1f2329, roughness: .4}), wood = new THREE.MeshStandardMaterial({color: 0xe7e2d8, roughness: .7});
-  const add = (geo, mat, x, y, z, parent = scene) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
+  const dark = new THREE.MeshStandardMaterial({color: 0x1f2329, roughness: .4}), wood = new THREE.MeshStandardMaterial({color: 0xc99a66, roughness: .65}), teal = new THREE.MeshStandardMaterial({color: 0x2a6f7c, roughness: .6}), leaf = new THREE.MeshStandardMaterial({color: 0x3f9a5a, roughness: .8, flatShading: true});
+  const add = (geo, mat, x, y, z, parent = root) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
-  const limb = (a, b, r, mat = white, parent = scene) => { const d = V().subVectors(b, a), m = new THREE.Mesh(new THREE.CapsuleGeometry(r, d.length(), 6, 14), mat);
+  const limb = (a, b, r, mat = white, parent = root) => { const d = V().subVectors(b, a), m = new THREE.Mesh(new THREE.CapsuleGeometry(r, d.length(), 6, 14), mat);
     m.position.copy(a).add(b).multiplyScalar(.5); m.quaternion.setFromUnitVectors(V(0, 1, 0), d.normalize()); m.castShadow = true; parent.add(m); return m; };
-  const floor = add(new THREE.PlaneGeometry(14, 14), new THREE.MeshStandardMaterial({color: 0xe9ebef, roughness: 1}), 0, 0, 0); floor.rotation.x = -Math.PI / 2;
-  add(new THREE.PlaneGeometry(10, 3.4), new THREE.MeshStandardMaterial({color: 0xf3f4f6, roughness: 1}), 0, 1.7, -2.8);
-  add(new THREE.CircleGeometry(.28, 40), new THREE.MeshBasicMaterial({map: clockTex()}), .38, 1.6, -2.78);
+  const floor = add(new THREE.PlaneGeometry(14, 14), new THREE.MeshStandardMaterial({color: 0xcdb48f, roughness: .9}), 0, 0, 0); floor.rotation.x = -Math.PI / 2;
+  const rug = add(new THREE.PlaneGeometry(2.6, 1.9), new THREE.MeshStandardMaterial({color: 0x8fb3bf, roughness: 1}), 0, .004, .35); rug.rotation.x = -Math.PI / 2; rug.castShadow = false;
+  {
+  add(new THREE.PlaneGeometry(10, 3.4), new THREE.MeshStandardMaterial({color: 0xd5e4e9, roughness: 1}), 0, 1.7, -2.8);
+  add(new THREE.BoxGeometry(10, .12, .05), new THREE.MeshStandardMaterial({color: 0x4f6b75, roughness: .8}), 0, .06, -2.78);
+  add(new THREE.CircleGeometry(.36, 48), new THREE.MeshBasicMaterial({map: clockTex()}), .38, 2.15, -2.78);
+  add(new THREE.BoxGeometry(1.24, .84, .03), dark, -1.25, 1.95, -2.79); add(new THREE.PlaneGeometry(1.16, .76), new THREE.MeshBasicMaterial({map: mapTex()}), -1.25, 1.95, -2.77);   // 세계 지도 포스터
+  add(new THREE.BoxGeometry(1.3, .04, .24), wood, 1.7, 1.25, -2.66);                                                                                                            // 벽 선반 + 책 · 화분
+  [[1.2, .26, 0xd9534f], [1.27, .3, 0x2d9bb5], [1.34, .24, 0xf2c14e], [1.41, .29, 0x3f9a5a], [1.48, .25, 0x7a6ad8]].forEach(([x, hgt, c]) => add(new THREE.BoxGeometry(.055, hgt, .17), new THREE.MeshStandardMaterial({color: c, roughness: .8}), x + .3, 1.27 + hgt / 2, -2.66));
+  add(new THREE.CylinderGeometry(.06, .05, .09, 14), new THREE.MeshStandardMaterial({color: 0xc4694a, roughness: .8}), 2.2, 1.32, -2.66); add(new THREE.IcosahedronGeometry(.09, 1), leaf, 2.2, 1.45, -2.66);
+  [[-1.6, -2.3], [1.9, -2.15]].forEach(([x, z]) => { add(new THREE.CylinderGeometry(.17, .13, .32, 16), new THREE.MeshStandardMaterial({color: 0xc4694a, roughness: .8}), x, .16, z); [[0, .62, 0, .3], [-.1, .5, .05, .22], [.1, .46, -.04, .2]].forEach(([dx, y, dz, r]) => { const l = add(new THREE.IcosahedronGeometry(r, 1), leaf, x + dx, y, z + dz); l.scale.y = 1.25; }); });
+  }
   // 책상 · 모니터 2대 · 키보드 · 서류 · 휴대폰
   add(new THREE.BoxGeometry(1.6, .04, .8), wood, 0, .74, -.05);
-  [[-.75, -.4], [.75, -.4], [-.75, .3], [.75, .3]].forEach(([x, z]) => add(new THREE.BoxGeometry(.04, .72, .04), grey, x, .36, z));
-  const monitor = (x, z, ry) => { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
+  [[-.75, -.4], [.75, -.4], [-.75, .3], [.75, .3]].forEach(([x, z]) => add(new THREE.BoxGeometry(.04, .72, .04), dark, x, .36, z));
+  const monitor = (x, z, ry) => { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; root.add(g);
     add(new THREE.BoxGeometry(.22, .015, .16), grey, 0, .768, 0, g); add(new THREE.BoxGeometry(.04, .3, .03), grey, 0, .9, -.01, g);
     add(new THREE.BoxGeometry(.62, .38, .025), dark, 0, 1.11, 0, g); add(new THREE.PlaneGeometry(.58, .34), new THREE.MeshBasicMaterial({map: screenTex()}), 0, 1.11, .0135, g); };
   monitor(0, -.3, 0); monitor(.66, -.18, -.55);
   add(new THREE.BoxGeometry(.44, .02, .14), white, 0, .77, .14);
-  const paper = add(new THREE.PlaneGeometry(.21, .297), new THREE.MeshStandardMaterial({map: docTex(), roughness: .9}), -.2, .762, .12); paper.rotation.x = -Math.PI / 2; paper.rotation.z = .12;
+  const paper = add(new THREE.PlaneGeometry(.21, .297), new THREE.MeshStandardMaterial({map: docTex(), roughness: .9}), 0, .762, -.07); paper.rotation.x = -Math.PI / 2; paper.rotation.z = .04;
   add(new THREE.BoxGeometry(.075, .009, .155), dark, .27, .765, .13);
+  add(new THREE.CylinderGeometry(.032, .028, .085, 16), new THREE.MeshStandardMaterial({color: 0x2d9bb5, roughness: .4}), .46, .79, .1);                                       // 머그컵
+  add(new THREE.CylinderGeometry(.05, .055, .02, 16), dark, -.62, .76, -.3); add(new THREE.CylinderGeometry(.008, .008, .3, 8), dark, -.62, .91, -.3); add(new THREE.ConeGeometry(.08, .1, 16), teal, -.62, 1.07, -.3).rotation.x = Math.PI;   // 스탠드
   // 의자 · 앉은 사람 (흰색 마네킹)
-  add(new THREE.BoxGeometry(.48, .06, .46), dark, 0, .46, .64); add(new THREE.BoxGeometry(.46, .5, .05), dark, 0, .8, .88);
+  add(new THREE.BoxGeometry(.48, .06, .46), teal, 0, .46, .64); add(new THREE.BoxGeometry(.46, .5, .05), teal, 0, .8, .88);
   add(new THREE.CylinderGeometry(.03, .03, .42, 10), grey, 0, .23, .64);
   limb(V(0, .56, .64), V(0, .98, .58), .14);
   limb(V(0, 1.04, .57), V(0, 1.12, .54), .045);
@@ -256,58 +247,335 @@ export function mountOffice(el) {
     limb(V(s * .1, .52, .64), V(s * .11, .53, .22), .075); limb(V(s * .11, .53, .22), V(s * .11, .08, .16), .058);
     add(new THREE.BoxGeometry(.09, .06, .22), white, s * .11, .03, .1);
   });
-  const neck = new THREE.Group(); neck.position.set(0, 1.12, .54); scene.add(neck);
+  const neck = new THREE.Group(); neck.position.set(0, 1.12, .54); root.add(neck);
   const hd = add(new THREE.SphereGeometry(.105, 28, 20), white, 0, .1, -.01, neck); hd.scale.set(.86, 1, .96);
   const gl = new THREE.MeshStandardMaterial({color: 0x15171c, roughness: .3});
   [-1, 1].forEach(s => { const ring = add(new THREE.TorusGeometry(.03, .0045, 8, 28), gl, s * .039, .1, -.104, neck); ring.scale.y = .8; add(new THREE.BoxGeometry(.004, .004, .1), gl, s * .07, .11, -.055, neck); });
   add(new THREE.BoxGeometry(.018, .004, .004), gl, 0, .108, -.104, neck);
-  // 시선 점선과 목표 표시
-  const sightGeo = new THREE.BufferGeometry().setFromPoints([V(), V()]);
-  const sight = new THREE.Line(sightGeo, new THREE.LineDashedMaterial({color: 0x0b7a91, dashSize: .04, gapSize: .025})); scene.add(sight);
+  return {neck, V, key};
+}
+
+function signTex() {
+  return canvasTex(512, 256, (g, w, h) => {
+    g.fillStyle = '#0f2238'; g.fillRect(0, 0, w, h); g.strokeStyle = '#2d9bb5'; g.lineWidth = 8; g.strokeRect(10, 10, w - 20, h - 20);
+    g.fillStyle = '#fff'; g.font = '900 74px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('EYEGENTRY', w / 2, 104);
+    g.fillStyle = '#9fb3cc'; g.font = '700 34px sans-serif'; g.fillText('아이젠트리 안경원', w / 2, 184);
+  });
+}
+/* 야외 거리: 인도 · 길 · 건물 · 가로수 · 차 · 간판(원거리 목표) */
+function buildStreetSet(root) {
+  const M = (c, o = {}) => new THREE.MeshStandardMaterial({color: c, roughness: .9, ...o});
+  const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; root.add(m); return m; };
+  const flat = (w, d, c, x, y, z) => { const m = add(new THREE.PlaneGeometry(w, d), M(c), x, y, z); m.rotation.x = -Math.PI / 2; m.castShadow = false; return m; };
+  flat(300, 300, 0xd3dccb, 0, -.02, -60); flat(9, 220, 0x6b7078, -5, .01, -90); flat(8, 220, 0xe4dfd3, 3.4, .012, -90);
+  add(new THREE.BoxGeometry(.2, .12, 220), M(0xc9c2b2), -.6, .06, -90);
+  for (let z = 4; z > -120; z -= 6) flat(.16, 2.6, 0xf3f3ee, -5, .02, z);
+  [0xcfd6de, 0xb9c3ce, 0xe3e0d6, 0xa9b6c4, 0xd8cdbd, 0xc6ced8].forEach((c, i) => [-1, 1].forEach(s => { const h = 8 + ((i * 7 + (s > 0 ? 3 : 0)) % 5) * 5; add(new THREE.BoxGeometry(11, h, 13), M(c), s < 0 ? -15 : 13.5, h / 2, 4 - i * 15); }));
+  const trunk = M(0x6b4f3a), leaf = new THREE.MeshStandardMaterial({color: 0x5f9a4a, roughness: .8, flatShading: true});
+  for (let i = 0; i < 9; i++) { const z = 2 - i * 9; add(new THREE.CylinderGeometry(.1, .14, 2.4, 8), trunk, 5.6, 1.2, z); const c = add(new THREE.IcosahedronGeometry(1.3, 1), leaf, 5.6, 3.2, z); c.scale.y = 1.1; }
+  const car = (x, z, c) => { add(new THREE.BoxGeometry(1.8, .7, 4.2), M(c, {roughness: .4, metalness: .3}), x, .6, z); add(new THREE.BoxGeometry(1.6, .55, 2.2), M(0x2b3440, {roughness: .2}), x, 1.2, z + .2); [-.85, .85].forEach(dx => [-1.4, 1.4].forEach(dz => { const w = add(new THREE.CylinderGeometry(.33, .33, .25, 14), M(0x15171c), x + dx, .33, z + dz); w.rotation.z = Math.PI / 2; })); };
+  car(-6.4, -13, 0xd92d20); car(-3.6, -24, 0xe5e7eb); car(-6.4, -40, 0x1d4ed8);
+  add(new THREE.CylinderGeometry(.06, .06, 2.6, 10), M(0x2f3540), 3.4, 1.3, -12.06);
+  add(new THREE.BoxGeometry(2.4, 1.2, .1), new THREE.MeshStandardMaterial({map: signTex(), roughness: .6}), 3.4, 2.6, -12);
+}
+/* 서 있는 마네킹: 팔 내린 자세 / 핸드폰을 들고 사진을 보는 자세 */
+function photoTex() {
+  return canvasTex(160, 330, (g, w, h) => {
+    const sk = g.createLinearGradient(0, 0, 0, 190); sk.addColorStop(0, '#ff9f66'); sk.addColorStop(1, '#ffe9b8'); g.fillStyle = sk; g.fillRect(0, 0, w, 200);
+    g.fillStyle = '#fff3a8'; g.beginPath(); g.arc(112, 100, 24, 0, 7); g.fill();
+    g.fillStyle = '#7a86c0'; g.beginPath(); g.moveTo(0, 170); g.lineTo(40, 110); g.lineTo(78, 160); g.lineTo(118, 96); g.lineTo(160, 170); g.closePath(); g.fill();
+    g.fillStyle = '#4e5d94'; g.beginPath(); g.moveTo(0, 190); g.lineTo(58, 140); g.lineTo(110, 190); g.closePath(); g.fill();
+    g.fillStyle = '#6fb7d8'; g.fillRect(0, 190, w, 70); g.fillStyle = 'rgba(255,255,255,.5)'; for (let i = 0; i < 6; i++) g.fillRect(14 + i * 22, 200 + (i % 3) * 16, 14, 2);
+    g.fillStyle = '#2b2f45'; [[62, 232, 10, 24], [80, 228, 11, 28], [99, 234, 8, 20]].forEach(([x, y, r, hh]) => { g.beginPath(); g.arc(x, y - hh / 2 - r / 2, r / 2 + 2, 0, 7); g.fill(); g.fillRect(x - r / 2, y - hh / 2, r, hh); });
+    g.fillStyle = '#fff'; g.fillRect(0, 262, w, 68); g.fillStyle = '#15171c'; g.font = '800 17px sans-serif'; g.textAlign = 'center'; g.fillText('가족 여행 · 제주', w / 2, 290); g.fillStyle = '#6b7280'; g.font = '600 12px sans-serif'; g.fillText('2026.10.24 · 사진 128장', w / 2, 312);
+  });
+}
+function buildStander(scene, x, z) {
+  const root = new THREE.Group(); root.position.set(x, 0, z); scene.add(root);
+  const white = new THREE.MeshStandardMaterial({color: 0xf4f5f7, roughness: .75}), dark = new THREE.MeshStandardMaterial({color: 0x1f2329, roughness: .4}), gl = new THREE.MeshStandardMaterial({color: 0x15171c, roughness: .3});
+  const V = (a, b, c) => new THREE.Vector3(a, b, c);
+  const add = (geo, mat, px, py, pz, parent = root) => { const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
+  const limb = (a, b, r, mat = white, parent = root) => { const d = V(0, 0, 0).subVectors(b, a), m = new THREE.Mesh(new THREE.CapsuleGeometry(r, d.length(), 6, 14), mat);
+    m.position.copy(a).add(b).multiplyScalar(.5); m.quaternion.setFromUnitVectors(V(0, 1, 0), d.normalize()); m.castShadow = true; parent.add(m); return m; };
+  [-1, 1].forEach(s => { limb(V(s * .1, .95, 0), V(s * .105, .5, .01), .066); limb(V(s * .105, .5, .01), V(s * .1, .08, 0), .05); add(new THREE.BoxGeometry(.09, .06, .24), white, s * .1, .03, -.04); add(new THREE.SphereGeometry(.058, 14, 10), white, s * .19, 1.38, 0); });
+  limb(V(0, .98, 0), V(0, 1.38, 0), .15); limb(V(0, 1.44, 0), V(0, 1.52, 0), .045);
+  const neck = new THREE.Group(); neck.position.set(0, 1.52, 0); root.add(neck);
+  const hd = add(new THREE.SphereGeometry(.105, 28, 20), white, 0, .1, -.01, neck); hd.scale.set(.86, 1, .96);
+  [-1, 1].forEach(s => { const ring = add(new THREE.TorusGeometry(.03, .0045, 8, 28), gl, s * .039, .1, -.104, neck); ring.scale.y = .8; add(new THREE.BoxGeometry(.004, .004, .1), gl, s * .07, .11, -.055, neck); });
+  add(new THREE.BoxGeometry(.018, .004, .004), gl, 0, .108, -.104, neck);
+  // 왼팔은 내린 채로 둠
+  limb(V(-.2, 1.38, 0), V(-.24, 1.12, .01), .045); limb(V(-.24, 1.12, .01), V(-.22, .88, .04), .04); add(new THREE.SphereGeometry(.04, 14, 10), white, -.22, .86, .05);
+  // 오른팔: 내린 자세(u=0) ↔ 핸드폰을 눈앞으로 든 자세(u=1) 사이를 부드럽게 움직임
+  const SH = V(.2, 1.38, 0), E0 = V(.24, 1.12, .01), E1 = V(.27, 1.15, -.1), H0 = V(.22, .88, .04), H1 = V(.1, 1.35, -.35);
+  const upper = new THREE.Mesh(new THREE.BufferGeometry(), white), fore = new THREE.Mesh(new THREE.BufferGeometry(), white), handM = add(new THREE.SphereGeometry(.042, 14, 10), white, 0, 0, 0);
+  [upper, fore].forEach(m => { m.castShadow = true; root.add(m); });
+  const phone = new THREE.Group(); root.add(phone);
+  add(new THREE.BoxGeometry(.075, .155, .009), dark, 0, 0, 0, phone);
+  const scr = add(new THREE.PlaneGeometry(.068, .145), new THREE.MeshBasicMaterial({map: photoTex()}), 0, 0, .0052, phone); scr.castShadow = false;
+  const q0 = new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), V(-.35, .1, .9).normalize()), q1 = new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), V(-.09, .24, .26).normalize());
+  const seg = (m, p, q, r) => { const d = V(0, 0, 0).subVectors(q, p); m.geometry.dispose(); m.geometry = new THREE.CapsuleGeometry(r, d.length(), 6, 14); m.position.copy(p).add(q).multiplyScalar(.5); m.quaternion.setFromUnitVectors(V(0, 1, 0), d.normalize()); };
+  function setArm(u) {
+    const e = V(0, 0, 0).lerpVectors(E0, E1, u), h = V(0, 0, 0).lerpVectors(H0, H1, u);
+    seg(upper, SH, e, .045); seg(fore, e, h, .04); handM.position.copy(h);
+    phone.position.set(h.x - .01 * u, h.y + .05 * u, h.z + .03 - .05 * u); phone.quaternion.slerpQuaternions(q0, q1, u);
+  }
+  setArm(0);  return {root, neck, setArm};
+}
+const OFFICE = {                                                 // dot: 렌즈 위 시선 위치(0~200 좌표)
+  mon:  {n: '모니터 보기', head: [-.06, 0], target: [0, 1.11, -.285], dot: [100, 70], blur: 0, ok: true, title: '모니터는 렌즈 위쪽으로 편하게', msg: '고개를 들지 않아도 렌즈 위쪽의 넓은 중간 거리 영역으로 모니터가 또렷하게 보여요.'},
+  near: {n: '서류 · 휴대폰', head: [-.34, 0], target: [0, .766, -.07], dot: [100, 152], blur: 0, ok: true, title: '휴대폰 · 서류는 눈만 내려서', msg: '렌즈 아래쪽 근거리 영역이 넓어서 고개를 크게 숙이지 않아도 글씨가 또렷해요.'},
+  dual: {n: '듀얼 모니터', head: [-.06, -.6], target: [.66, 1.11, -.165], dot: [100, 76], blur: 0, ok: true, title: '고개를 돌리면 또렷하게', msg: '옆 모니터는 눈만 돌리기보다 고개를 살짝 돌려 렌즈 가운데로 보면 가장 편하고 선명해요.'},
+  clock: {n: '벽 시계 (2m형)', head: [.22, -.1], target: [.38, 2.15, -2.77], dot: [100, 40], blur: 1.1, ok: true, st: '시계는 알아볼 수 있어요', cam: {az: -.28, el: .1, dist: 4.7, tgt: [.3, 1.75, -1.75]}, title: '벽 시계 정도는 보여요', msg: '2m형 오피스 렌즈는 방 안 거리까지 넓게 보이도록 만든 설계라 벽에 걸린 시계 정도는 볼 수 있어요. 숫자는 살짝 부드럽게 보이고, 운전 · 보행처럼 먼 거리는 일반 안경이나 누진다초점을 사용하세요.'}
+};
+const OT = [{id: 1, n: '기본형', m: 46, kk: .85}, {id: 2, n: '보급형', m: 34, kk: .6}, {id: 3, n: '최고급형', m: 22, kk: .4}];   // m: 렌즈 가운데에서 또렷한 폭(왼쪽 경계, 0~100) — 클수록 가장자리 수차(흐림)가 넓음
+function officeZone(m) {                                          // 오피스 렌즈에서 또렷한 영역: 가운데가 세로로 넓고 양옆 가장자리만 흐림 (제조사 시야 이미지 참고)
+  const L = [m - 9, m + 1, m, m - 1, m - 11, m - 14], R = L.map(v => 200 - v);
+  return `M${L[0]},-6 C${m - 5},40 ${L[1]},80 ${L[2]},100 C${L[3]},130 ${L[4]},170 ${L[5]},206 L${R[5]},206 C${R[4]},170 ${R[3]},130 ${R[2]},100 C${R[1]},80 ${200 - (m - 5)},40 ${R[0]},-6 Z`;
+}export function mountOffice(el) {
+  const uidn = 'of' + Math.floor(Math.random() * 1e6), LENS = lensPath(100, 100, 190, 190), CAM0 = {az: -.95, el: .3, dist: 2.35, tgt: [.12, .96, -.08]};
+  let cur = 'mon', tier = 2, head = OFFICE.mon.head.slice(), goal = null, settle = false, prevT = 0, W = 0, H = 0, raf = 0;
+  const lbl = (x, y, t, c, cls = '') => `<text class="${cls}" x="${x}" y="${y}" font-size="9" font-weight="800" fill="#fff" stroke="${c}" stroke-width="2.4" paint-order="stroke" text-anchor="middle">${t}</text>`;
+  el.innerHTML = `<div class="of of--prog"><div class="of-3d"><canvas></canvas><div class="t3-labels"></div><div class="p3-hint">끌어서 돌려 보세요</div></div>
+      <div class="of-side"><div class="of-card"><h5>렌즈 너머로 보이는 모습 <em>1인칭</em><span class="of-st"></span></h5>
+        <div class="pm-fp"><canvas width="520" height="520"></canvas>
+          <svg viewBox="0 0 200 200" aria-hidden="true"><defs><clipPath id="${uidn}c"><path d="${LENS}"/></clipPath></defs>
+            <g clip-path="url(#${uidn}c)"><path class="oz1" fill="transparent" stroke="#fff" stroke-width="3.4" stroke-opacity=".85"/><path class="oz2" fill="none" stroke="#0b7a91" stroke-width="1.4"/>
+              ${lbl(100, 14, '먼 거리 △', '#0f2238')}${lbl(100, 108, '중간', '#0f2238')}${lbl(100, 183, '근거리', '#0f2238')}${lbl(24, 104, '흐림', '#9a3412', 'obl')}${lbl(176, 104, '흐림', '#9a3412', 'obr')}</g>
+            <path d="${LENS}" fill="none" stroke="#334155" stroke-width="3"/>
+            <g class="of-dot"><circle r="13" fill="#0b6b7e" opacity=".22"/><circle r="5.5" fill="none" stroke="#fff" stroke-width="2.4"/><circle r="1.8" fill="#fff"/></g></svg></div>
+        <small>밝은 선 안쪽이 또렷한 영역이에요. 오피스 렌즈는 중간~근거리가 넓고, 아래 양옆과 초점에서 먼 쪽은 서서히 흐려져요</small></div></div></div>
+    <div class="p3-ctl p3-ctl--l"><div class="seg" data-k="sc">${Object.entries(OFFICE).map(([k, s]) => `<button data-v="${k}" class="${k === cur ? 'is-on' : ''}">${s.n}</button>`).join('')}</div>
+      <div class="seg" data-k="tier">${OT.map(t => `<button data-v="${t.id}" class="${t.id === tier ? 'is-on' : ''}">${t.n}</button>`).join('')}</div></div>
+    <p class="sim-cap" data-k="cap"></p>`;
+  const box = el.querySelector('.of-3d'), cv = box.querySelector('canvas'), labels = box.querySelector('.t3-labels'), cap = el.querySelector('[data-k=cap]');
+  const dot = el.querySelector('.of-dot'), stTag = el.querySelector('.of-st'), fpc = el.querySelector('.pm-fp canvas'), fpx = fpc.getContext('2d'), lensP2D = new Path2D(LENS); let zoneP2D = new Path2D(officeZone(34));
+  const mkc = () => { const c = document.createElement('canvas'); c.width = c.height = fpc.width; return c; }, gA = mkc(), gB = mkc();
+  const renderer = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  const scene = new THREE.Scene(), {neck, V} = buildOffice(scene), fpBg = new THREE.Color(0xe8ecf1);
+  /* 눈에서 목표까지 이어지는 시선: 굵은 점선 */
+  const DASH_MAX = 420, dashes = new THREE.InstancedMesh(new THREE.CylinderGeometry(.01, .01, 1, 6), new THREE.MeshBasicMaterial({color: 0x0b7a91}), DASH_MAX); dashes.frustumCulled = false; scene.add(dashes);
+  const dm = new THREE.Matrix4(), dq = new THREE.Quaternion(), ds = V(1, 1, 1), dp = V(0, 0, 0), dd = V(0, 0, 0), UP = V(0, 1, 0);
   const mark = new THREE.Mesh(new THREE.SphereGeometry(.025, 16, 12), new THREE.MeshBasicMaterial({color: 0x0e8aa2})); scene.add(mark);
-  const cam = new THREE.PerspectiveCamera(36, 1.4, .05, 50), tgt = V(.12, .96, -.08);
-  const orbit = {az: -.95, el: .3, dist: 2.35, hold: 0};
-  let W = 0, H = 0, raf = 0;
-  const eye = V(), tv = V(), pv = V();
+  const cam = new THREE.PerspectiveCamera(36, 1.4, .05, 50), fpCam = new THREE.PerspectiveCamera(66, 1, .03, 50), tgt = V(...CAM0.tgt);
+  const orbit = {az: CAM0.az, el: CAM0.el, dist: CAM0.dist, hold: 0}, tvGoal = V(...OFFICE.mon.target);
+  const eye = V(0, 0, 0), tv = V(...OFFICE.mon.target), pv = V(0, 0, 0), qS = {}, qCur = new THREE.Quaternion(), dotCur = OFFICE.mon.dot.slice(); let fovCur = 66;
   function layout() { W = box.clientWidth; H = box.clientHeight; if (!W) return; renderer.setSize(W, H, false); cam.aspect = W / H; cam.updateProjectionMatrix(); }
-  const CAM0 = {az: -.95, el: .3, dist: 2.35, tgt: [.12, .96, -.08]};       // 장면마다 카메라도 같이 이동 (먼 곳은 벽 시계까지 보이게)
-  function setScene(k) {
-    cur = k; const s = OFFICE[k], from = head.slice(), t0 = performance.now(); anim = t0;
-    const c0 = {az: orbit.az, el: orbit.el, dist: orbit.dist, tgt: tgt.toArray()}, c1 = s.cam || CAM0;
-    (function step(now) { if (anim !== t0) return; const t = clamp((now - t0) / 800, 0, 1), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2, L = (a, b) => a + (b - a) * e;
-      head = [L(from[0], s.head[0]), L(from[1], s.head[1])];
-      orbit.az = L(c0.az, c1.az); orbit.el = L(c0.el, c1.el); orbit.dist = L(c0.dist, c1.dist); tgt.set(L(c0.tgt[0], c1.tgt[0]), L(c0.tgt[1], c1.tgt[1]), L(c0.tgt[2], c1.tgt[2]));
-      if (t < 1) requestAnimationFrame(step); })(t0);
-    dot.style.transform = `translate(${s.zone[0]}px,${s.zone[1]}px)`; dot.classList.toggle('is-bad', !s.ok);
-    read.style.filter = s.blur ? `blur(${s.blur}px)` : 'none';
+  function updateSight() {
+    dd.subVectors(tv, eye); const len = dd.length(); dd.normalize();
+    const r = .005 + cam.position.distanceTo(eye) * .0012, step = Math.max(.055, r * 7), n = Math.min(DASH_MAX, Math.floor(len / step));
+    dq.setFromUnitVectors(UP, dd);
+    for (let i = 0; i < n; i++) { dp.copy(eye).addScaledVector(dd, (i + .5) * step); ds.set(r / .01, step * .6, r / .01); dm.compose(dp, dq, ds); dashes.setMatrixAt(i, dm); }
+    dashes.count = n; dashes.instanceMatrix.needsUpdate = true;
+  }
+  function apply() {
+    const s = OFFICE[cur], T = OT.find(t => t.id === tier), zd = officeZone(T.m); el.querySelectorAll('.oz1, .oz2').forEach(z => z.setAttribute('d', zd)); zoneP2D = new Path2D(zd);
+    el.querySelector('.obl').setAttribute('x', Math.max(12, T.m / 2 + 2)); el.querySelector('.obr').setAttribute('x', 200 - Math.max(12, T.m / 2 + 2));
+    el.querySelectorAll('[data-k=tier] button').forEach(b => b.classList.toggle('is-on', +b.dataset.v === tier));
+    dot.style.transform = `translate(${s.dot[0]}px,${s.dot[1]}px)`; dot.classList.toggle('is-bad', !s.ok);
     stTag.textContent = s.st || (s.ok ? '선명하게 보여요' : '흐리게 보여요'); stTag.className = 'of-st ' + (s.ok ? 'is-ok' : 'is-bad');
     cap.innerHTML = `<b>${s.title}</b> — ${s.msg} <small>개념 설명용 3D입니다. 영역의 넓이는 제품마다 다릅니다.</small>`;
-    el.querySelectorAll('[data-k=sc] button').forEach(b => b.classList.toggle('is-on', b.dataset.v === k));
-    mark.material.color.set(s.ok ? 0x0e8aa2 : 0xd92d20); sight.material.color.set(s.ok ? 0x0b7a91 : 0xd92d20);
+    mark.material.color.set(s.ok ? 0x0e8aa2 : 0xd92d20); dashes.material.color.set(s.ok ? 0x0b7a91 : 0xd92d20);
+    el.querySelectorAll('[data-k=sc] button').forEach(b => b.classList.toggle('is-on', b.dataset.v === cur));
   }
-  const TAGS = [['mon', '모니터 · 중간 거리', V(0, 1.34, -.3)], ['dual', '듀얼 모니터', V(.66, 1.34, -.18)], ['near', '서류 · 근거리', V(-.2, .8, .26)], ['clock', '벽 시계 · 2m형', V(.38, 1.95, -2.78)]];
+  function setScene(k, first) {
+    const s = OFFICE[k], c = s.cam || CAM0; cur = k; tvGoal.set(...s.target);
+    if (first) { head = s.head.slice(); tv.copy(tvGoal); }
+    else { goal = {head: s.head.slice(), cam: c}; settle = true; }   // 목표만 정해 두고 매 프레임 부드럽게 따라감
+    apply();
+  }
+  const TAGS = [['mon', '모니터 · 중간 거리', V(0, 1.34, -.3)], ['dual', '듀얼 모니터', V(.66, 1.34, -.18)], ['near', '서류 · 근거리', V(0, .84, -.07)], ['clock', '벽 시계 · 2m형', V(.38, 2.62, -2.78)]];
+  function drawFP() {                                               // 캐릭터의 눈 위치에서 본 장면을 렌즈 모양 안에 그림 (선명 영역 밖 + 초점에서 먼 쪽은 서서히 흐리게)
+    const S = Math.min(512, W, H), pr = renderer.getPixelRatio(), s = OFFICE[cur], fov = s.fov || 66, th = Math.tan(fov * Math.PI / 360);
+    fpCam.fov = fovCur; fpCam.updateProjectionMatrix(); fpCam.position.copy(eye); fpCam.quaternion.copy(qCur);
+    dashes.visible = false; mark.visible = false; scene.background = fpBg;
+    renderer.setViewport(0, 0, S, S); renderer.setScissor(0, 0, S, S); renderer.setScissorTest(true); renderer.render(scene, fpCam); renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);
+    dashes.visible = true; mark.visible = true; scene.background = null;
+    const N = fpc.width, k = N / 200, sy = cv.height - S * pr, kk = OT.find(t => t.id === tier).kk, gpx = s.blur * .8;
+    const layer = (g, blurPx, a0, a1) => {                           // 초점에서 먼 쪽으로 갈수록 진해지는 흐림 층
+      g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, N, N); g.filter = `blur(${(blurPx * k).toFixed(1)}px)`; g.drawImage(cv, 0, sy, S * pr, S * pr, -8, -8, N + 16, N + 16); g.filter = 'none';
+      g.globalCompositeOperation = 'destination-in'; const far = cur === 'clock', gr = g.createLinearGradient(0, far ? .5 * N : .4 * N, 0, far ? N : 0);
+      gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(a0, 'rgba(0,0,0,0)'); gr.addColorStop(1, `rgba(0,0,0,${a1})`); g.fillStyle = gr; g.fillRect(0, 0, N, N); g.globalCompositeOperation = 'source-over';
+    };
+    layer(gA.getContext('2d'), 3.2 * kk, .25, .75); layer(gB.getContext('2d'), 7.5 * kk, .55, .7);
+    fpx.clearRect(0, 0, N, N); fpx.save(); fpx.scale(k, k); fpx.clip(lensP2D);
+    fpx.filter = 'blur(5px)'; fpx.drawImage(cv, 0, sy, S * pr, S * pr, -6, -6, 212, 212);
+    fpx.save(); fpx.clip(zoneP2D); fpx.filter = gpx ? `blur(${gpx.toFixed(1)}px)` : 'none'; fpx.drawImage(cv, 0, sy, S * pr, S * pr, 0, 0, 200, 200); fpx.restore(); fpx.filter = 'none';
+    fpx.drawImage(gA, 0, 0, 200, 200); fpx.drawImage(gB, 0, 0, 200, 200); fpx.restore();
+  }
   function loop(t) {
     raf = requestAnimationFrame(loop); if (!W) return;
+    const dt = Math.min(.05, Math.max(0, (t - (prevT || t)) / 1000)); prevT = t;
+    const f = 1 - Math.exp(-dt * 4.2); qCur.slerp(qS[cur], f); fovCur += ((OFFICE[cur].fov || 66) - fovCur) * f;
+    if (goal) {                                                       // 고개 · 시선 목표 · 카메라가 목표로 부드럽게 수렴 (지수 감쇠)
+      head = [head[0] + (goal.head[0] - head[0]) * f, head[1] + (goal.head[1] - head[1]) * f];
+      if (settle) { const c = goal.cam; orbit.az += (c.az - orbit.az) * f; orbit.el += (c.el - orbit.el) * f; orbit.dist += (c.dist - orbit.dist) * f; tgt.x += (c.tgt[0] - tgt.x) * f; tgt.y += (c.tgt[1] - tgt.y) * f; tgt.z += (c.tgt[2] - tgt.z) * f;
+        if (Math.abs(c.dist - orbit.dist) < .01 && Math.abs(c.az - orbit.az) < .004 && Math.abs(c.tgt[0] - tgt.x) < .01) settle = false; }
+    }
+    tv.lerp(tvGoal, f);
     const idle = performance.now() > orbit.hold, az = orbit.az + (idle ? Math.sin(t / 5200) * .12 : 0);
     cam.position.set(tgt.x + orbit.dist * Math.cos(orbit.el) * Math.sin(az), tgt.y + orbit.dist * Math.sin(orbit.el), tgt.z + orbit.dist * Math.cos(orbit.el) * Math.cos(az)); cam.lookAt(tgt);
-    neck.rotation.set(head[0], head[1], 0, 'YXZ');
-    neck.localToWorld(eye.set(0, .1, -.11)); tv.set(...OFFICE[cur].target);
-    sightGeo.setFromPoints([eye, tv]); sight.computeLineDistances(); mark.position.copy(tv); mark.scale.setScalar(1 + Math.sin(t / 260) * .25);
+    neck.rotation.set(head[0], head[1], 0, 'YXZ'); scene.updateMatrixWorld(true);
+    neck.localToWorld(eye.set(0, .1, -.11));
+    updateSight(); mark.position.copy(tv); mark.scale.setScalar(1 + Math.sin(t / 260) * .25);
+    drawFP();
     renderer.render(scene, cam);
-    labels.innerHTML = TAGS.map(([k, n, p]) => { pv.copy(p).project(cam); return `<div class="of-tag ${k === cur ? 'is-on' : ''} ${k === cur && !OFFICE[k].ok ? 'is-bad' : ''}" style="left:${(pv.x * .5 + .5) * W}px;top:${(-pv.y * .5 + .5) * H}px">${n}</div>`; }).join('');
+    labels.innerHTML = TAGS.map(([k, n, p]) => { pv.copy(p).project(cam); if (pv.z > 1) return ''; return `<div class="of-tag ${k === cur ? 'is-on' : ''} ${k === cur && !OFFICE[k].ok ? 'is-bad' : ''}" style="left:${(pv.x * .5 + .5) * W}px;top:${(-pv.y * .5 + .5) * H}px">${n}</div>`; }).join('');
   }
   let drag = null;
-  box.addEventListener('pointerdown', e => { drag = {x: e.clientX, y: e.clientY, az: orbit.az, el: orbit.el}; box.setPointerCapture(e.pointerId); });
+  box.addEventListener('pointerdown', e => { settle = false; drag = {x: e.clientX, y: e.clientY, az: orbit.az, el: orbit.el}; box.setPointerCapture(e.pointerId); });
   box.addEventListener('pointermove', e => { if (!drag) return; orbit.az = drag.az - (e.clientX - drag.x) * .006; orbit.el = clamp(drag.el + (e.clientY - drag.y) * .004, .05, .9); orbit.hold = performance.now() + 6000; });
   ['pointerup', 'pointercancel'].forEach(k => box.addEventListener(k, () => { drag = null; }));
-  el.querySelector('[data-k=sc]').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setScene(b.dataset.v); });
-  const ro = new ResizeObserver(layout); ro.observe(box); layout(); setScene('mon'); raf = requestAnimationFrame(loop);
+  el.querySelector('[data-k=sc]').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.v !== cur) setScene(b.dataset.v); });
+  el.querySelector('[data-k=tier]').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { tier = +b.dataset.v; apply(); } });
+  function computeQ() {                                             // 장면마다 (그 장면의 고개 각도에서) 목표를 렌즈 위 점에 놓는 카메라 방향을 미리 구해 둠
+    const tmp = new THREE.PerspectiveCamera(66, 1, .03, 50), e = V(0, 0, 0);
+    Object.keys(OFFICE).forEach(k => { const s = OFFICE[k], th = Math.tan((s.fov || 66) * Math.PI / 360); neck.rotation.set(s.head[0], s.head[1], 0, 'YXZ'); scene.updateMatrixWorld(true); neck.localToWorld(e.set(0, .1, -.11));
+      tmp.position.copy(e); tmp.lookAt(V(...s.target)); tmp.rotateY(Math.atan((s.dot[0] - 100) / 100 * th)); tmp.rotateX(-Math.atan((100 - s.dot[1]) / 100 * th)); qS[k] = tmp.quaternion.clone(); });
+    qCur.copy(qS.mon); fovCur = OFFICE.mon.fov || 66;
+  }
+  const ro = new ResizeObserver(layout); ro.observe(box); layout(); computeQ(); setScene('mon', true); raf = requestAnimationFrame(loop);
+  return {
+    update() {},
+    destroy() { cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); scene.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
+  };
+}
+/* ═════════ 다초점 3D: 장소를 바꿔 가며 먼 곳(야외 간판) · 가까운 곳(핸드폰 사진)을 볼 때 렌즈의 어디를 쓰는지, 그때 캐릭터의 1인칭 시야 ═════════ */
+const SX = 2, SZ = -2;                                           // 야외 인물 위치(인도)
+const PM = {
+  far:  {n: '원거리 · 야외', pose: 0, head: [.09, -.14], target: [3.4, 2.6, -12], dot: [100, 66], mk: 5, cam: {az: -.4, el: .13, dist: 7, tgt: [2.4, 1.5, -5]}, title: '멀리 볼 때는 렌즈 위쪽', msg: '야외에서 고개를 살짝 들면 렌즈 위쪽의 원거리 영역으로 길 끝의 간판까지 또렷하게 보여요. 가까운 쪽(아래)은 서서히 흐려져요.'},
+  near: {n: '근거리 · 핸드폰', pose: 1, head: [-.45, -.15], target: [SX + .09, 1.4, SZ - .37], dot: [100, 150], cam: {az: -.95, el: .36, dist: 1.75, tgt: [SX + .04, 1.36, SZ - .24]}, title: '핸드폰 사진은 렌즈 아래쪽', msg: '눈을 내려 렌즈 아래쪽 근거리 영역으로 핸드폰 속 사진과 글씨를 또렷하게 봐요. 멀리(위쪽)는 서서히 흐려져요.'}
+};
+function mountProgOffice(el, opt) {
+  const TI = Sim.TIERS, st = opt, uidn = 'pm' + Math.floor(Math.random() * 1e6), LENS = lensPath(100, 100, 190, 190);
+  let cur = 'far', head = PM.far.head.slice(), armU = 0, anim = 0, okNow = true, zoneD = '';
+  el.innerHTML = `<div class="of of--prog"><div class="of-3d"><canvas></canvas><div class="t3-labels"></div><div class="p3-hint">끌어서 돌려 보세요</div></div>
+      <div class="of-side"><div class="of-card"><h5>렌즈 너머로 보이는 모습 <em>1인칭</em><span class="of-st"></span></h5>
+        <div class="pm-fp"><canvas width="520" height="520"></canvas>
+          <svg viewBox="0 0 200 200" aria-hidden="true"><defs><clipPath id="${uidn}c"><path d="${LENS}"/></clipPath></defs>
+            <g clip-path="url(#${uidn}c)"><path class="pm-zone" fill="transparent" stroke="#fff" stroke-width="3.4" stroke-opacity=".85"/><path class="pm-zone2" fill="none" stroke="#0b7a91" stroke-width="1.4"/>
+              <text x="100" y="22" font-size="9" font-weight="800" fill="#fff" stroke="#0f2238" stroke-width="2.4" paint-order="stroke" text-anchor="middle">원거리</text><text x="100" y="183" font-size="9" font-weight="800" fill="#fff" stroke="#0f2238" stroke-width="2.4" paint-order="stroke" text-anchor="middle">근거리</text>
+              <text x="26" y="104" font-size="9" font-weight="800" fill="#fff" stroke="#9a3412" stroke-width="2.4" paint-order="stroke" text-anchor="middle">흐림</text><text x="174" y="104" font-size="9" font-weight="800" fill="#fff" stroke="#9a3412" stroke-width="2.4" paint-order="stroke" text-anchor="middle">흐림</text></g>
+            <path d="${LENS}" fill="none" stroke="#334155" stroke-width="3"/>
+            <g class="of-dot"><circle r="13" fill="#0b6b7e" opacity=".22"/><circle r="5.5" fill="none" stroke="#fff" stroke-width="2.4"/><circle r="1.8" fill="#fff"/></g></svg></div>
+        <small>밝은 선 안쪽이 또렷한 영역이에요. 바깥과 초점이 먼 쪽은 서서히 흐려져요 (등급 · ADD에 따라 달라져요)</small></div></div></div>
+    <div class="p3-ctl p3-ctl--l"><div class="seg" data-k="sc">${Object.entries(PM).map(([k, s]) => `<button data-v="${k}" class="${k === cur ? 'is-on' : ''}">${s.n}</button>`).join('')}</div>
+      <div class="seg" data-k="tier">${TI.map(t => `<button data-v="${t.id}" class="${t.id === st.tier ? 'is-on' : ''}">${t.name}</button>`).join('')}</div>
+      <label class="pg-addc">ADD<input type="range" class="p3-add" min="0.75" max="3.5" step="0.25" value="${st.add}" aria-label="ADD"><b class="num pg-addv p3-addv">+${st.add.toFixed(2)}</b></label></div>
+    <p class="sim-cap" data-k="cap"></p>`;
+  const box = el.querySelector('.of-3d'), cv = box.querySelector('canvas'), labels = box.querySelector('.t3-labels'), cap = el.querySelector('[data-k=cap]');
+  const dot = el.querySelector('.of-dot'), stTag = el.querySelector('.of-st'), zones = el.querySelectorAll('.pm-zone, .pm-zone2'), zone = el.querySelector('.pm-zone');
+  const fpc = el.querySelector('.pm-fp canvas'), fpx = fpc.getContext('2d'), lensP2D = new Path2D(LENS);
+  const mkc = () => { const c = document.createElement('canvas'); c.width = c.height = fpc.width; return c; }, gA = mkc(), gB = mkc();
+  const renderer = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  const scene = new THREE.Scene(); scene.background = skyTex(); scene.fog = new THREE.Fog(0xdde6ee, 14, 110);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd9dee6, 1.3));
+  const key = new THREE.DirectionalLight(0xffffff, 1.7); key.position.set(-9, 15, 7); key.target.position.set(2, 0, -5); key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+  Object.assign(key.shadow.camera, {left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 50}); scene.add(key, key.target);
+  const streetRoot = new THREE.Group(); scene.add(streetRoot); buildStreetSet(streetRoot);
+  const man = buildStander(scene, SX, SZ), V = (x, y, z) => new THREE.Vector3(x, y, z);
+  /* 눈에서 목표까지 이어지는 시선: 굵은 점선(작은 막대를 줄지어 세움) */
+  const DASH_MAX = 420, dashes = new THREE.InstancedMesh(new THREE.CylinderGeometry(.01, .01, 1, 6), new THREE.MeshBasicMaterial({color: 0x0b7a91}), DASH_MAX); dashes.frustumCulled = false; scene.add(dashes);
+  const dm = new THREE.Matrix4(), dq = new THREE.Quaternion(), ds = V(1, 1, 1), dp = V(0, 0, 0), dd = V(0, 0, 0), UP = V(0, 1, 0);
+  const mark = new THREE.Mesh(new THREE.SphereGeometry(.025, 16, 12), new THREE.MeshBasicMaterial({color: 0x0e8aa2})); scene.add(mark);
+  const cam = new THREE.PerspectiveCamera(36, 1.4, .05, 400), tgt = V(...PM.far.cam.tgt), fpCam = new THREE.PerspectiveCamera(66, 1, .03, 400);
+  const orbit = {az: PM.far.cam.az, el: PM.far.cam.el, dist: PM.far.cam.dist, hold: 0};
+  let W = 0, H = 0, raf = 0, lastU = -1, goal = null, settle = false, prevT = 0;
+  const eye = V(0, 0, 0), tv = V(0, 0, 0), pv = V(0, 0, 0), qS = {}, qCur = new THREE.Quaternion(), dotCur = PM.far.dot.slice();                // dotCur: 1인칭 카메라가 쓰는 시선 위치(렌즈 좌표) — 장면이 바뀔 때 부드럽게 이동
+  function layout() { W = box.clientWidth; H = box.clientHeight; if (!W) return; renderer.setSize(W, H, false); cam.aspect = W / H; cam.updateProjectionMatrix(); }
+  function updateSight() {
+    dd.subVectors(tv, eye); const len = dd.length(); dd.normalize();
+    const r = .005 + cam.position.distanceTo(eye) * .0012, step = Math.max(.055, r * 7), n = Math.min(DASH_MAX, Math.floor(len / step));
+    dq.setFromUnitVectors(UP, dd);
+    for (let i = 0; i < n; i++) { dp.copy(eye).addScaledVector(dd, (i + .5) * step); ds.set(r / .01, step * .6, r / .01); dm.compose(dp, dq, ds); dashes.setMatrixAt(i, dm); }
+    dashes.count = n; dashes.instanceMatrix.needsUpdate = true;
+  }
+  function apply() {                                              // 등급 · ADD · 장면에 따라 선명 영역 안에 시선이 있는지 판정
+    const s = PM[cur]; zoneD = Sim.clearZonePath({}, st.add, st.tier); zones.forEach(z => z.setAttribute('d', zoneD));
+    okNow = zone.isPointInFill(new DOMPoint(s.dot[0], s.dot[1]));
+    dot.style.transform = `translate(${s.dot[0]}px,${s.dot[1]}px)`; dot.classList.toggle('is-bad', !okNow);
+    stTag.textContent = okNow ? '선명하게 보여요' : '흐리게 보여요'; stTag.className = 'of-st ' + (okNow ? 'is-ok' : 'is-bad');
+    cap.innerHTML = `<b>${s.title}</b> — ${s.msg} <small>개념 설명용 3D이며 영역의 넓이는 제품마다 다릅니다.</small>`;
+    mark.material.color.set(okNow ? 0x0e8aa2 : 0xd92d20); dashes.material.color.set(okNow ? 0x0b7a91 : 0xd92d20);
+  }
+  function setScene(k, first) {
+    const s = PM[k]; cur = k; anim = performance.now();
+    el.querySelectorAll('[data-k=sc] button').forEach(b => b.classList.toggle('is-on', b.dataset.v === k));
+    if (first) { head = s.head.slice(); armU = s.pose; }
+    else { goal = {head: s.head.slice(), u: s.pose, cam: s.cam}; settle = true; }   // 목표만 정해 두고 매 프레임 부드럽게 따라감 (급가속 없이)
+    apply();
+  }
+  const TAGS = [['far', '야외 · 먼 간판', V(3.4, 3.4, -12)], ['near', '핸드폰 · 사진', V(SX + .09, 1.62, SZ - .37)]];
+  function drawFP() {                                               // 캐릭터의 눈 위치에서 본 장면을 렌즈 모양 안에 그림 (선명 영역 밖 + 초점에서 먼 쪽은 서서히 흐리게)
+    const S = Math.min(380, W, H), pr = renderer.getPixelRatio(), s = PM[cur], th = Math.tan(66 * Math.PI / 360);
+    fpCam.position.copy(eye); fpCam.quaternion.copy(qCur);
+    dashes.visible = false; mark.visible = false;
+    renderer.setViewport(0, 0, S, S); renderer.setScissor(0, 0, S, S); renderer.setScissorTest(true); renderer.render(scene, fpCam); renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);
+    dashes.visible = true; mark.visible = true;
+    const N = fpc.width, k = N / 200, sy = cv.height - S * pr, sc = Sim.progScores({}, st.tier);
+    const px = Math.min(7, Math.max(2, (2 + st.add * 1.3) * (1.9 - sc.side / 60))), kk = Math.max(.3, 1.4 - sc.side / 100);   // kk: 등급이 낮을수록 그라데이션 흐림이 큼
+    const layer = (g, blurPx, a0, a1) => {                           // 초점에서 먼 쪽으로 갈수록 진해지는 흐림 층
+      g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, N, N); g.filter = `blur(${(blurPx * k).toFixed(1)}px)`; g.drawImage(cv, 0, sy, S * pr, S * pr, -8, -8, N + 16, N + 16); g.filter = 'none';
+      g.globalCompositeOperation = 'destination-in'; const far = cur === 'clock', gr = g.createLinearGradient(0, far ? .5 * N : .4 * N, 0, far ? N : 0);
+      gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(a0, 'rgba(0,0,0,0)'); gr.addColorStop(1, `rgba(0,0,0,${a1})`); g.fillStyle = gr; g.fillRect(0, 0, N, N); g.globalCompositeOperation = 'source-over';
+    };
+    layer(gA.getContext('2d'), 3.2 * kk, .25, Math.min(.9, .55 + kk * .4)); layer(gB.getContext('2d'), 7.5 * kk, .55, Math.min(1, kk * 1.15));
+    fpx.clearRect(0, 0, N, N); fpx.save(); fpx.scale(k, k); fpx.clip(lensP2D);
+    fpx.filter = `blur(${px.toFixed(1)}px)`; fpx.drawImage(cv, 0, sy, S * pr, S * pr, -6, -6, 212, 212); fpx.filter = 'none';
+    fpx.save(); fpx.clip(new Path2D(zoneD)); fpx.drawImage(cv, 0, sy, S * pr, S * pr, 0, 0, 200, 200); fpx.restore();
+    fpx.drawImage(gA, 0, 0, 200, 200); fpx.drawImage(gB, 0, 0, 200, 200); fpx.restore();
+  }
+  function loop(t) {
+    raf = requestAnimationFrame(loop); if (!W) return;
+    const dt = Math.min(.05, Math.max(0, (t - (prevT || t)) / 1000)); prevT = t;
+    qCur.slerp(qS[cur], 1 - Math.exp(-dt * 4.2));                       // 1인칭 시선 방향: 장면별로 미리 구한 방향으로 한 번에 부드럽게 회전 (튀지 않음)
+    if (goal) {                                                       // 고개 · 팔 · 카메라가 목표로 부드럽게 수렴 (지수 감쇠)
+      const f = 1 - Math.exp(-dt * 4.2), g = goal;
+      head = [head[0] + (g.head[0] - head[0]) * f, head[1] + (g.head[1] - head[1]) * f]; armU += (g.u - armU) * f;
+      if (settle) { orbit.az += (g.cam.az - orbit.az) * f; orbit.el += (g.cam.el - orbit.el) * f; orbit.dist += (g.cam.dist - orbit.dist) * f; tgt.x += (g.cam.tgt[0] - tgt.x) * f; tgt.y += (g.cam.tgt[1] - tgt.y) * f; tgt.z += (g.cam.tgt[2] - tgt.z) * f;
+        if (Math.abs(g.cam.dist - orbit.dist) < .01 && Math.abs(g.cam.az - orbit.az) < .004 && Math.abs(g.cam.tgt[0] - tgt.x) < .01) settle = false; }
+    }
+    const idle = performance.now() > orbit.hold, az = orbit.az + (idle ? Math.sin(t / 5200) * .1 : 0);
+cam.position.set(tgt.x + orbit.dist * Math.cos(orbit.el) * Math.sin(az), tgt.y + orbit.dist * Math.sin(orbit.el), tgt.z + orbit.dist * Math.cos(orbit.el) * Math.cos(az)); cam.lookAt(tgt);
+    if (Math.abs(armU - lastU) > 1e-3) { man.setArm(armU); lastU = armU; }
+    man.neck.rotation.set(head[0], head[1], 0, 'YXZ'); scene.updateMatrixWorld(true);
+    man.neck.localToWorld(eye.set(0, .1, -.11));
+    const u = clamp(armU, 0, 1), s0 = PM.far.target, s1 = PM.near.target; tv.set(s0[0] + (s1[0] - s0[0]) * u, s0[1] + (s1[1] - s0[1]) * u, s0[2] + (s1[2] - s0[2]) * u);   // 시선 목표도 부드럽게 이동
+    updateSight(); mark.position.copy(tv); mark.scale.setScalar((PM.far.mk + (1 - PM.far.mk) * u) * (1 + Math.sin(t / 260) * .25));
+    drawFP();
+    renderer.render(scene, cam);
+    labels.innerHTML = TAGS.map(([k, n, p]) => { pv.copy(p).project(cam); if (pv.z > 1) return ''; return `<div class="of-tag ${k === cur ? 'is-on' : ''} ${k === cur && !okNow ? 'is-bad' : ''}" style="left:${(pv.x * .5 + .5) * W}px;top:${(-pv.y * .5 + .5) * H}px">${n}</div>`; }).join('');
+  }
+  let drag = null;
+  box.addEventListener('pointerdown', e => { settle = false; drag = {x: e.clientX, y: e.clientY, az: orbit.az, el: orbit.el}; box.setPointerCapture(e.pointerId); });
+  box.addEventListener('pointermove', e => { if (!drag) return; orbit.az = drag.az - (e.clientX - drag.x) * .006; orbit.el = clamp(drag.el + (e.clientY - drag.y) * .004, .05, .9); orbit.hold = performance.now() + 6000; });
+  ['pointerup', 'pointercancel'].forEach(k => box.addEventListener(k, () => { drag = null; }));
+  el.querySelector('[data-k=sc]').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.v !== cur) setScene(b.dataset.v); });
+  el.querySelector('[data-k=tier]').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.tier = +b.dataset.v; el.querySelectorAll('[data-k=tier] button').forEach(x => x.classList.toggle('is-on', x === b)); apply(); });
+  const addIn = el.querySelector('.p3-add'); addIn.addEventListener('input', () => { st.add = +addIn.value; el.querySelector('.p3-addv').textContent = '+' + st.add.toFixed(2); apply(); });
+  function computeQ() {                                             // 장면마다 (그 장면의 고개 각도에서) 목표를 렌즈 위 점에 놓는 카메라 방향을 미리 구해 둠
+    const tmp = new THREE.PerspectiveCamera(66, 1, .03, 400), th = Math.tan(66 * Math.PI / 360), e = V(0, 0, 0);
+    Object.keys(PM).forEach(k => { const s = PM[k]; man.neck.rotation.set(s.head[0], s.head[1], 0, 'YXZ'); scene.updateMatrixWorld(true); man.neck.localToWorld(e.set(0, .1, -.11));
+      tmp.position.copy(e); tmp.lookAt(V(...s.target)); tmp.rotateY(Math.atan((s.dot[0] - 100) / 100 * th)); tmp.rotateX(-Math.atan((100 - s.dot[1]) / 100 * th)); qS[k] = tmp.quaternion.clone(); });
+    qCur.copy(qS.far);
+  }
+  const ro = new ResizeObserver(layout); ro.observe(box); layout(); computeQ(); setScene('far', true); raf = requestAnimationFrame(loop);
   return {
     update() {},
     destroy() { anim = -1; cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); scene.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } }); }
   };
 }
-
+/* 다초점 3D: 인물 시점(기본) ↔ 안경 쓴 시점 */
+export function mountProg3D(el, opt = {}) {
+  const sh = {tier: opt.tier || 3, add: opt.add || 1.5}; let h = null, view = 'person';
+  el.innerHTML = `<div class="p3w-bar"><div class="seg" data-k="view"><button data-v="person" class="is-on">인물 시점</button><button data-v="fp">안경 쓴 시점</button></div></div><div class="p3w-b"></div>`;
+  const body = el.querySelector('.p3w-b');
+  const mount = v => { if (h && h.destroy) h.destroy(); view = v; el.querySelectorAll('[data-k=view] button').forEach(b => b.classList.toggle('is-on', b.dataset.v === v)); body.innerHTML = ''; h = v === 'person' ? mountProgOffice(body, sh) : mountProgFP(body, sh); };
+  el.querySelector('[data-k=view]').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.v !== view) mount(b.dataset.v); });
+  mount('person');
+  return {update() {}, destroy() { if (h && h.destroy) h.destroy(); h = null; }};
+}
 /* ═════════ 렌즈 두께 3D (돌려 보는 메니스커스 렌즈) ═════════ */
 export function mountThick3D(el, opt) {
   let st = {P: opt.P, r: opt.r || 31, hi: opt.hi || null, idx: opt.idx || [1.50, 1.60, 1.67, 1.74], ry: 1.0, rx: .12, hold: 0};

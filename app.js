@@ -108,9 +108,11 @@ function normalize(raw) {
 }
 /* 왼쪽 분류 정리 — 화면에서만 나누고 묶음 (저장된 데이터와 V1 관리자 호환은 그대로) */
 const GROUPS = ['기본', '기능 · 대상', '컬러', '기타', '정보'];                 // 소제목 순서
-const GROUP_OF = [[/정보/, '정보'], [/단초점|고난시|다초점/, '기본'], [/착색|선글라스|변색/, '컬러'], [/피로|빛번짐|근시|오피스|기능/, '기능 · 대상']];
-const ALIAS = [[/^피로감소/, '피로감소 · 오피스']];                               // 긴 분류명 줄이기
-const SPLITS = [{test: /고난시.*착색|착색.*고난시/, parts: [{name: '고난시', kind: 'astig', has: l => !/착색/.test(l.name)}, {name: '착색', kind: 'tint', has: l => /착색/.test(l.name)}]}];
+const GROUP_OF = [[/정보/, '정보'], [/단초점|고난시|빛번짐/, '기본'], [/착색|선글라스|변색/, '컬러'], [/피로|근시|오피스|다초점|기능/, '기능 · 대상']];
+const ORDER_OF = [[/^단초점/, 10], [/^고난시/, 20], [/^빛번짐/, 30], [/^어린이 근시$/, 60], [/^피로감소/, 70], [/^오피스/, 71], [/^다초점/, 80]];   // 화면에서의 순서 (저장된 순서는 그대로)
+const ALIAS = [];                                                               // 긴 분류명 줄이기 (필요할 때만 추가)
+const SPLITS = [{test: /고난시.*착색|착색.*고난시/, parts: [{name: '고난시', kind: 'astig', has: l => !/착색/.test(l.name)}, {name: '착색', kind: 'tint', has: l => /착색/.test(l.name)}]},
+  {test: /^피로감소/, parts: [{name: '피로감소', kind: 'fatigue', has: l => !/오피스/.test(l.name)}, {name: '오피스', kind: 'office', has: l => /오피스/.test(l.name)}]}];
 /* 같은 굴절률에 가격만 다른 줄이 여러 개인 렌즈는 '기본 한 줄 + 옵션 +금액'으로 접어서 보여줌 (화면에서만, 저장 데이터는 그대로) */
 const FOLD = [{brand: '호야', name: /^마이오스마트$/}];
 function foldOptions() {
@@ -151,6 +153,7 @@ function regroup() {
   cats.forEach(c => {
     c.name = (ALIAS.find(a => a[0].test(c.name || '')) || [0, c.name])[1];
     c.group = (GROUP_OF.find(g => g[0].test(c.name || '')) || [0, '기타'])[1];
+    const od = ORDER_OF.find(o => o[0].test(c.name || '')); if (od) c.order = od[1];
   });
   S.data.categories = cats;
 }
@@ -220,8 +223,9 @@ function renderHead() {
   n = lenses.length; ok = lenses.filter(l => lensAvail(l) === 'ok').length;
   // 다초점 보드가 2개 이상(일반 · 변색)이면 제목 옆에 전환 버튼을 한 줄로 둠
   const mxs = t.rec ? [] : S.data.matrices.filter(m => m.tabId === t.id), mxi = clamp(MXSEL[t.id] || 0, 0, Math.max(0, mxs.length - 1));
+  const is3 = !t.rec && /다초점/.test(t.name) && mxs.length > 0, b3 = is3 ? '<button type="button" class="btn btn--accent mx3d" data-a="lab-p3"><em class="b3d">3D</em>3D 시뮬레이션</button>' : '';
   const sw = mxs.length > 1 ? `<div class="mxsw"><div class="seg">${mxs.map((m, i) => `<button class="${i === mxi ? 'is-on' : ''}" data-a="mx" data-v="${i}">${esc(mxLabel(m, mxs))}</button>`).join('')}</div></div>` : '';
-  $('#head').innerHTML = `<div><h1>${esc(t.name)}</h1></div>${sw}
+  $('#head').innerHTML = `<div><h1>${esc(t.name)}</h1></div>${sw}${b3}
     <p>${n ? `제품 ${n}개${S.power.set ? ` · 이 도수로 제작 가능 <b>${ok}개</b>` : ''}` : ''}</p>
     <div class="sp">${n ? '가격 행을 누르면 두께 · 견적을 볼 수 있어요' : ''}</div>`;
 }
@@ -357,9 +361,10 @@ function tiersFor(m) {                                // 열마다 등급(1~4). 
 }
 function optNames(m) { const n = []; m.cols.forEach(c => colOpts(m, c).forEach(o => { if (!n.includes(o.n)) n.push(o.n); })); return n; }
 const firstLine = s => { const t = String(s || '').replace(/<br\s*\/?>/gi, ' ').split('\n')[0].trim(), k = t.indexOf('. '); return k > 0 ? t.slice(0, k + 1) : t; };
+const ADD_RANGE_CHECK = false;
 function matrixCard(m) {
   const cols = m.cols, mi = S.data.matrices.indexOf(m), tiers = tiersFor(m), TI = Sim.TIERS, n = cols.length;
-  const over = cols.map(c => { const mx = Sim.addMax(c.addInfo); return mx !== null && S.add > mx + .001; });
+  const over = cols.map(c => { if (!ADD_RANGE_CHECK) return false; const mx = Sim.addMax(c.addInfo); return mx !== null && S.add > mx + .001; });   // ADD 범위를 넘는 제품을 흐리게 표시하는 기능은 보류 (ADD_RANGE_CHECK를 true로 하면 다시 켜짐)
   const at = (i, ix) => `data-a="pg" data-m="${mi}" data-c="${i}" data-i="${ix || ''}"`;
   let g = `<div class="pg-l pg-corner">굴절률</div>` + cols.map((c, i) => {
     const bg = safeColor(c.bgColor) || '#cbd5e1';
@@ -662,21 +667,20 @@ function openCompare() {
 }
 
 /* ───── 시뮬레이션 랩 ───── */
-const LAB_MODES = [
+const LAB_MODES = [                                                                  // 순서: 1 굴절·교정 · 2 다초점 · 3 오피스 · 그 밖의 시뮬레이션
+  {id: 'rf', n: '굴절 · 교정', d: '정시 · 근시 · 원시 · 난시 / 교정 · 미교정', ctl: false},
+  {id: 'p3', n: '다초점 렌즈', d: '야외 · 핸드폰 · 렌즈 너머 1인칭', ctl: false, is3d: true},
+  {id: 'of', n: '오피스 렌즈', d: '모니터 · 서류 · 시계 · 1인칭', ctl: false, is3d: true},
   {id: 'vz', n: '선명도 비교', d: '안경 없이 · 현재 안경 → 새 안경', ctl: true},
   {id: 'tk', n: '렌즈 두께', d: '단면 · 3D로 돌려 보기', ctl: true, has3d: true},
-  {id: 'rf', n: '굴절 원리', d: '근시 · 원시 · 난시', ctl: false, hide: true},          // hide: 목록에서만 뺌 (코드는 남겨 둠)
   {id: 'dz', n: '설계별 왜곡', d: '왜곡 지도 · 글자판', ctl: true},
   {id: 'lb', n: '왜곡 글자판', d: '렌즈 너머 글자 보기', ctl: true, hide: true},          // 설계별 왜곡 탭 안으로 합침
   {id: 'gl', n: '빛번짐', d: '코마 · 트레포일 · 구면 수차', ctl: false},
   {id: 'my', n: '근시 억제', d: '성장기 원리', ctl: false, hide: true},                 // 어린이 근시 분류 하단에 있음
   {id: 'tn', n: '선글라스 · 변색', d: '틴트 · 변색 · 편광 비교', ctl: false},
   {id: 'bl', n: '블루라이트', d: '코팅 반사 · 소재 흡수', ctl: false, hide: true},        // 단초점 하단 그림과 중복
-  {id: 'an', n: '양안 도수차', d: '좌우 이미지 크기 차이', ctl: false, hide: true},
-  {id: 'p3', n: '다초점 렌즈', d: '안경 쓴 시점으로 보기', ctl: false, is3d: true},
-  {id: 'of', n: '오피스 렌즈', d: '모니터 · 서류 · 휴대폰', ctl: false, is3d: true}
-];
-const LAB = {mode: 'vz', dzv: 'map', s: -3, c: -0.75, size: 'mid', split: 50, h: null, tier: 1, hi: null, tok: 0, tk3d: false, vzc: 'bare', os: null, oc: null};
+  {id: 'an', n: '양안 도수차', d: '좌우 이미지 크기 차이', ctl: false, hide: true}
+];const LAB = {mode: 'rf', dzv: 'map', s: -3, c: -0.75, size: 'mid', split: 50, h: null, tier: 3, hi: null, tok: 0, tk3d: false, vzc: 'bare', os: null, oc: null};
 let sim3dLoad = null;                                   // 3D 모듈은 처음 열 때만 불러옴
 const load3D = () => sim3dLoad || (sim3dLoad = import('./sim3d.js').catch(e => { sim3dLoad = null; throw e; }));
 function openLab(mode, o = {}) {
@@ -686,7 +690,7 @@ function openLab(mode, o = {}) {
   if (o.tk3d !== undefined) LAB.tk3d = o.tk3d;
   LAB.mode = mode || LAB.mode;
   openSheet(`<div class="sh-h"><h2>시뮬레이션</h2><small>눈과 렌즈의 원리를 눈으로 확인합니다</small>${X_BTN}</div><div class="sh-b"><div class="lab">
-    <div class="lab__nav" id="lab-nav"></div><div class="lab__main"><div id="lab-ctl"></div><div id="lab-view"></div></div></div></div>`, 'sheet--w', () => { if (LAB.h && LAB.h.destroy) LAB.h.destroy(); LAB.h = null; });
+    <div class="lab__nav" id="lab-nav"></div><div class="lab__main"><div id="lab-ctl"></div><div id="lab-view"></div></div></div></div>`, 'sheet--w sheet--lab', () => { if (LAB.h && LAB.h.destroy) LAB.h.destroy(); LAB.h = null; });
   renderLab();
 }
 function renderLab() {
@@ -805,6 +809,7 @@ document.addEventListener('click', e => {
     case 'close': return closeSheet();
     case 'pg': return openProg(+t.dataset.m, +t.dataset.c, t.dataset.i);
     case 'pg-3d': return openLab('p3', {tier: +t.dataset.t});
+    case 'lab-p3': return openLab('p3');
     case 'tk-3d': return openLab('tk', {s: +t.dataset.s, c: +t.dataset.c, hi: t.dataset.i, idx: t.dataset.l ? t.dataset.l.split(',').map(Number) : null, tk3d: true});
     case 'pg-idx': PG.idx = t.dataset.i; return renderProg();
     case 'pg-opt': PG.opts.has(t.dataset.n) ? PG.opts.delete(t.dataset.n) : PG.opts.add(t.dataset.n); return renderProg();

@@ -12,6 +12,7 @@
   const fD = d => (d > 0.004 ? '+' : d < -0.004 ? '−' : '') + Math.abs(d).toFixed(2) + 'D';
   const C = {bg: '#f6f9ff', teal: '#00957b', coral: '#ef3340', amber: '#e08600', blue: '#1f4fe0', dim: '#3d5468', mute: '#7d93a8', ink: '#0b1f33'};
   let uid = 0;
+  const YEAR = new Date().getFullYear();
   const bar = (fig, right) => `<div class="hd-bar"><span>${fig}</span><span class="hd-r">${right || ''}</span></div>`;
 
   const lerpTbl = (t, a) => { if (a <= t[0][0]) return t[0][1]; for (let i = 1; i < t.length; i++) if (a <= t[i][0]) { const [x0, y0] = t[i - 1], [x1, y1] = t[i]; return y0 + (y1 - y0) * (a - x0) / (x1 - x0); } return t[t.length - 1][1]; };
@@ -46,29 +47,31 @@
   /* ───── 안구 단면 (가로 단면, 빛은 왼쪽에서 들어옴) ─────
      공막·맥락막·망막 3겹 / 각막 · 전방 · 홍채(동공) · 수정체 · 섬모체와 진대 · 유리체 / 황반(중심와) · 시신경 유두와 망막 혈관
      x0: 각막 맨 앞, L: 안구 길이(px), ry: 세로 반지름. labels: 해부 이름표 */
-  function eyeModel({x0, cy, L, ry, col = C.dim, ret = C.blue, labels = false}) {
-    const f = n => (+n).toFixed(1), rx = L / 2, cx = x0 + rx, FP = '#a8561a';
+  function eyeModel({x0, cy, L, ry, col = C.dim, ret = C.blue, labels = false, muted = false}) {
+    const K = muted ? {vit: 'rgba(110,130,160,.10)', cor: 'rgba(110,140,180,.22)', lens: 'rgba(110,140,185,.28)', lensS: '#7a90ae', iris: '#a39580', irisS: '#75664f', cil: '#e1cfb3', cilS: '#ad9677', FP: '#c2a487', vess: '#d3a29d', nerve: '#ebe6db', mac: '#e0c97c'}
+      : {vit: 'rgba(31,79,224,.16)', cor: 'rgba(31,79,224,.42)', lens: 'rgba(31,79,224,.5)', lensS: '#1d3fa8', iris: '#8b5a2b', irisS: '#3f2610', cil: '#f2b45e', cilS: '#8a4b12', FP: '#a8561a', vess: '#e0392f', nerve: '#efe7d3', mac: '#e0b030'};
+    const f = n => (+n).toFixed(1), rx = L / 2, cx = x0 + rx, FP = K.FP;
     const wall = (y, r = 0) => cx - (rx - r) * Math.sqrt(Math.max(0, 1 - Math.pow(y / (ry - r), 2)));   // 높이 y에서 앞쪽 벽의 x
     const P = (th, r = 0) => [cx + (rx - r) * Math.cos(th), cy + (ry - r) * Math.sin(th)];
     const arc = (a, b, r, sw) => { const p = P(a, r), q = P(b, r); return `M${f(p[0])} ${f(p[1])}A${f(rx - r)} ${f(ry - r)} 0 0 ${b > a ? 1 : 0} ${f(q[0])} ${f(q[1])}`; };
     const xl = x0 + .2 * L, xi = x0 + .15 * L;
-    let g = `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx)}" ry="${f(ry)}" fill="rgba(31,79,224,.16)" stroke="${col}" stroke-width="3.8"/>
+    let g = `<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx)}" ry="${f(ry)}" fill="${K.vit}" stroke="${col}" stroke-width="3.8"/>
       <ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${f(rx - 4)}" ry="${f(ry - 4)}" fill="none" stroke="${FP}" stroke-width="3" opacity=".75"/>`;                                   // 공막 · 맥락막
     g += `<path d="${arc(-1.3, 1.3, 8)}" fill="none" stroke="${ret}" stroke-width="5.5" stroke-linecap="round"/>`;                                                                   // 망막
     const thd = .32, pd = P(thd), nx = Math.cos(thd) / rx, ny = Math.sin(thd) / ry, nl = Math.hypot(nx, ny), ux = nx / nl, uy = ny / nl;             // 시신경 유두 + 시신경
-    [[-1.05, 0, 13, 1.3, .55], [1.2, 1, 13, 1.3, .55], [-.62, 0, 18, 1, .45], [.85, 1, 18, 1, .45]].forEach(([b, , r, w, o]) => { const a = thd, p = P(a, r), q = P(b, r); g += `<path d="M${f(p[0])} ${f(p[1])}A${f(rx - r)} ${f(ry - r)} 0 0 ${b > a ? 1 : 0} ${f(q[0])} ${f(q[1])}" fill="none" stroke="#e0392f" stroke-width="${w + .4}" opacity="${o + .3}" stroke-linecap="round"/>`; });   // 망막 혈관
-    g += `<polygon points="${f(pd[0] - uy * 6)},${f(pd[1] + ux * 6)} ${f(pd[0] + uy * 6)},${f(pd[1] - ux * 6)} ${f(pd[0] + uy * 6 + ux * 24)},${f(pd[1] - ux * 6 + uy * 24)} ${f(pd[0] - uy * 6 + ux * 24)},${f(pd[1] + ux * 6 + uy * 24)}" fill="#efe7d3" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="${f(P(thd, 8)[0])}" cy="${f(P(thd, 8)[1])}" r="3.4" fill="#f2c14e" stroke="#b98a1b" stroke-width=".8"/>`;
-    g += `<path d="${arc(-.11, .11, 8)}" fill="none" stroke="#e0b030" stroke-width="7" stroke-linecap="round" opacity=".75"/><circle cx="${f(P(0, 5)[0])}" cy="${f(cy)}" r="1.8" fill="${C.bg}"/>`;   // 황반 · 중심와
+    [[-1.05, 0, 13, 1.3, .55], [1.2, 1, 13, 1.3, .55], [-.62, 0, 18, 1, .45], [.85, 1, 18, 1, .45]].forEach(([b, , r, w, o]) => { const a = thd, p = P(a, r), q = P(b, r); g += `<path d="M${f(p[0])} ${f(p[1])}A${f(rx - r)} ${f(ry - r)} 0 0 ${b > a ? 1 : 0} ${f(q[0])} ${f(q[1])}" fill="none" stroke="${K.vess}" stroke-width="${w + .4}" opacity="${o + .3}" stroke-linecap="round"/>`; });   // 망막 혈관
+    g += `<polygon points="${f(pd[0] - uy * 6)},${f(pd[1] + ux * 6)} ${f(pd[0] + uy * 6)},${f(pd[1] - ux * 6)} ${f(pd[0] + uy * 6 + ux * 24)},${f(pd[1] - ux * 6 + uy * 24)} ${f(pd[0] - uy * 6 + ux * 24)},${f(pd[1] + ux * 6 + uy * 24)}" fill="${K.nerve}" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="${f(P(thd, 8)[0])}" cy="${f(P(thd, 8)[1])}" r="3.4" fill="#f2c14e" stroke="#b98a1b" stroke-width=".8"/>`;
+    g += `<path d="${arc(-.11, .11, 8)}" fill="none" stroke="${K.mac}" stroke-width="7" stroke-linecap="round" opacity=".75"/><circle cx="${f(P(0, 5)[0])}" cy="${f(cy)}" r="1.8" fill="${C.bg}"/>`;   // 황반 · 중심와
     [-1, 1].forEach(s => {                                                                                                                       // 섬모체 · 진대
       const yc = s * .76 * ry, xc = wall(yc, 4);
-      g += `<ellipse cx="${f(xc + .028 * L)}" cy="${f(cy + yc - s * .06 * ry)}" rx="${f(.032 * L)}" ry="${f(.07 * ry)}" fill="#f2b45e" stroke="#8a4b12" stroke-width="1.2"/>`;
+      g += `<ellipse cx="${f(xc + .028 * L)}" cy="${f(cy + yc - s * .06 * ry)}" rx="${f(.032 * L)}" ry="${f(.07 * ry)}" fill="${K.cil}" stroke="${K.cilS}" stroke-width="1.2"/>`;
       for (let i = -1; i <= 1; i++) g += `<line x1="${f(xc + .04 * L)}" y1="${f(cy + yc - s * .1 * ry + i * 4)}" x2="${f(xl + i * 2)}" y2="${f(cy + s * (.33 + i * .04) * ry)}" stroke="${C.dim}" stroke-width=".9" opacity=".7"/>`;
       const ya = s * .68 * ry, yb = s * .21 * ry;                                                                                                  // 홍채
-      g += `<path d="M${f(xi - .009 * L)} ${f(cy + ya)}L${f(xi + .009 * L)} ${f(cy + ya)}L${f(xi + .004 * L)} ${f(cy + yb)}L${f(xi - .004 * L)} ${f(cy + yb)}Z" fill="#8b5a2b" stroke="#3f2610" stroke-width="1.1"/>`;
+      g += `<path d="M${f(xi - .009 * L)} ${f(cy + ya)}L${f(xi + .009 * L)} ${f(cy + ya)}L${f(xi + .004 * L)} ${f(cy + yb)}L${f(xi - .004 * L)} ${f(cy + yb)}Z" fill="${K.iris}" stroke="${K.irisS}" stroke-width="1.1"/>`;
     });
     const yc0 = .42 * ry, xa = wall(yc0), k1 = x0 - .15 * L, k2 = x0 - .06 * L;                                                                  // 각막
-    g += `<path d="M${f(xa)} ${f(cy - yc0)}Q${f(k1)} ${f(cy)} ${f(xa)} ${f(cy + yc0)}L${f(xa + .022 * L)} ${f(cy + yc0)}Q${f(k2 + .0 * L)} ${f(cy)} ${f(xa + .022 * L)} ${f(cy - yc0)}Z" fill="rgba(31,79,224,.42)" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
-    g += `<ellipse cx="${f(xl)}" cy="${f(cy)}" rx="${f(.05 * L)}" ry="${f(.34 * ry)}" fill="rgba(31,79,224,.5)" stroke="#1d3fa8" stroke-width="2.4"/>` +                       // 수정체
+    g += `<path d="M${f(xa)} ${f(cy - yc0)}Q${f(k1)} ${f(cy)} ${f(xa)} ${f(cy + yc0)}L${f(xa + .022 * L)} ${f(cy + yc0)}Q${f(k2 + .0 * L)} ${f(cy)} ${f(xa + .022 * L)} ${f(cy - yc0)}Z" fill="${K.cor}" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>`;
+    g += `<ellipse cx="${f(xl)}" cy="${f(cy)}" rx="${f(.05 * L)}" ry="${f(.34 * ry)}" fill="${K.lens}" stroke="${K.lensS}" stroke-width="2.4"/>` +                       // 수정체
       [[.032, .26], [.016, .17]].map(([a, b]) => `<ellipse cx="${f(xl)}" cy="${f(cy)}" rx="${f(a * L)}" ry="${f(b * ry)}" fill="none" stroke="${ret}" stroke-width="1" opacity=".4"/>`).join('');
     if (labels) {
       const lbl = (x, y, tx, ty, t, a = 'middle') => `<line x1="${f(x)}" y1="${f(y)}" x2="${f(tx)}" y2="${f(ty + (ty < y ? 3 : -9))}" stroke="${C.ink}" stroke-width="1" opacity=".6"/><text x="${f(tx)}" y="${f(ty)}" font-size="12" font-weight="850" fill="${C.ink}" text-anchor="${a}">${t}</text>`;
@@ -134,10 +137,10 @@
 
     function kid() {                                                   // 지금 입력한 나이의 아이 모습 (근시면 안경)
       const k = .36, base = 74;
-      return `<div class="cs-kid"><svg viewBox="0 0 64 78" aria-hidden="true"><line x1="6" x2="58" y1="${base + 1}" y2="${base + 1}" stroke="${C.mute}"/>${person(st.age, {x: 32, base, k, glasses: st.se <= -.5})}</svg><span><b class="num">${st.age}세</b>키 ${Math.round(heightOf(st.age))}cm</span></div>`;
+      return `<div class="cs-kid"><svg viewBox="0 0 64 78" aria-hidden="true"><line x1="6" x2="58" y1="${base + 1}" y2="${base + 1}" stroke="${C.mute}"/>${person(st.age, {x: 32, base, k, glasses: st.se <= -.5})}</svg><span><b class="num">${st.age}세</b>${YEAR - st.age}년생 · ${Math.round(heightOf(st.age))}cm</span></div>`;
     }
     function inputs() {
-      inEl.innerHTML = `<div class="cs-f"><label>나이</label>${step('나이', st.age + '세', 'age-', 'age+')}</div>
+      inEl.innerHTML = `<div class="cs-f"><label>나이</label>${step('나이', `${st.age}세<small>${YEAR - st.age}년생</small>`, 'age-', 'age+')}</div>
         <div class="cs-f"><label>성별</label>${seg(GENDER, st.gender, 'g')}</div>
         <div class="cs-f"><label>부모 근시</label>${seg(PARENTS, st.parents, 'p')}</div>
         <div class="cs-f"><label>현재 도수 (구면등가)${pw !== null ? ' <em>고객 도수 반영</em>' : ''}</label>${step('도수', fD(st.se), 'se-', 'se+')}</div>
@@ -203,20 +206,20 @@
   const stateOf = d => Math.abs(d) < .5 ? ['정시', 'ok'] : d > 0 ? ['원시', 'hy'] : ['근시', 'my'];
 
   function mountGrowth(el) {
-    const id = 'gr' + (++uid), ac = new AbortController(), SC = 11, X0 = 90, CY = 150, G = 2.4;       // G: 그림에서 초점·길이 차이를 눈에 띄게 키우는 배율 (수치는 실제값)
-    const st = {age: 3, play: 0};
+    const id = 'gr' + (++uid), ac = new AbortController(), SC = 11, X0 = 90, CY = 150, G = 2.4, GH = 5;       // G: 그림에서 초점·길이 차이를 눈에 띄게 키우는 배율 (수치는 실제값)
+    const st = {age: 1, play: 0};
     el.innerHTML = `<div class="gr hud" id="${id}">${bar('FIG. 02 — GROWTH', '<span class="hd-lg"><i class="t"></i>정상 성장<i class="c"></i>근시형 성장 (안경)</span><b class="hd-n gr-cnt"></b>')}
+      <div class="gr-ctl"><button type="button" class="btn btn--line gr-play" data-act="play">▶ 자라는 모습 보기</button>
+        <div class="sl"><input type="range" min="0" max="25" step="0.5" value="${st.age}" aria-label="나이"></div><span class="chip gr-stage"></span></div>
       <svg viewBox="0 0 400 276" class="gr-ppl" aria-label="영유아부터 성인까지 키 변화"></svg>
       <svg viewBox="0 0 560 300" class="gr-eye" aria-hidden="true"></svg>
       <div class="gr-side"><div class="gr-nums"></div><div class="gr-gauge"></div><div class="gr-vis"></div></div>
-      <div class="gr-ctl"><button type="button" class="btn btn--line gr-play" data-act="play">▶ 자라는 모습 보기</button>
-        <div class="sl"><input type="range" min="0" max="25" step="0.5" value="${st.age}" aria-label="나이"></div><span class="chip gr-stage"></span></div>
       <p class="sim-cap gr-cap"></p></div>`;
     const box = el.querySelector('.gr'), ppl = box.querySelector('.gr-ppl'), eye = box.querySelector('.gr-eye'), gauge = box.querySelector('.gr-gauge'), vis = box.querySelector('.gr-vis'), nums = box.querySelector('.gr-nums'), cap = box.querySelector('.gr-cap'), rng = box.querySelector('input'), play = box.querySelector('.gr-play');
     function draw() {
       const a = st.age, ln = alN(a), lm = alM(a), f = foc(a), si = stageIdx(a), cm = Math.round(heightOf(a));
       const dN = (f - ln) * 2.7, dM = (f - lm) * 2.7;                                                    // 안구 1mm ≈ 2.7D 근사 (실제 수치)
-      const rN = X0 + ln * SC, rMv = rN + (lm - ln) * SC * G, fx = rN + (f - ln) * SC * G, ry = n => n * SC * .44, ryM = ry(ln) * 1.04;
+      const rN = X0 + ln * SC, rMv = rN + (lm - ln) * SC * G, fx = rN + (f - ln) * SC * (f > ln ? GH : G), ry = n => n * SC * .44, ryM = ry(ln) * 1.04;
       /* 사람: 5개 시기를 같은 눈금으로 나란히 — 지금 시기만 현재 나이로 자라고 밝게 표시 */
       const XS = [48, 122, 196, 276, 352], BASE = 236, K = 1.2;
       ppl.innerHTML = `<line x1="8" x2="392" y1="${BASE + 1}" y2="${BASE + 1}" stroke="#16324f" stroke-width="2"/>` + SLOTS.map((s, i) => {
@@ -240,7 +243,7 @@
         ${[CY - 20, CY, CY + 20].map(y => ray(y)).join('')}
         ${blur(rN - 8, f - ln, C.teal)}${blur(rMv - 8, f - lm, C.coral)}
         <circle cx="${fx.toFixed(1)}" cy="${CY}" r="13" fill="${C.amber}" fill-opacity=".3"/><circle cx="${fx.toFixed(1)}" cy="${CY}" r="6" fill="${C.amber}" stroke="#fff" stroke-width="2.5"/>
-        <g font-size="12.5" font-weight="900" stroke="#fff" stroke-width="4" paint-order="stroke" stroke-linejoin="round"><text x="${(fx - 14).toFixed(1)}" y="${CY - 14}" fill="${C.amber}" text-anchor="end">초점</text>
+        <g font-size="12.5" font-weight="900" stroke="#fff" stroke-width="4" paint-order="stroke" stroke-linejoin="round"><text x="${(f > ln + .05 ? fx + 14 : fx - 14).toFixed(1)}" y="${CY - 14}" fill="${C.amber}" text-anchor="${f > ln + .05 ? 'start' : 'end'}">${f > ln + .05 ? '초점 · 망막 뒤' : '초점'}</text>
           <line x1="${pN[0].toFixed(1)}" y1="${pN[1].toFixed(1)}" x2="${(lx - 3).toFixed(1)}" y2="${(pN[1] - 4).toFixed(1)}" stroke="${C.teal}" stroke-width="1.2"/><text x="${lx.toFixed(1)}" y="${pN[1].toFixed(1)}" fill="${C.teal}">정상 망막</text>
           <line x1="${pM[0].toFixed(1)}" y1="${pM[1].toFixed(1)}" x2="${(lx - 3).toFixed(1)}" y2="${(pM[1] + 1).toFixed(1)}" stroke="${C.coral}" stroke-width="1.2"/><text x="${lx.toFixed(1)}" y="${(pM[1] + 5).toFixed(1)}" fill="${C.coral}">근시형 망막</text></g>`;
       /* 큰 숫자 · 원시→정시→근시 눈금 · 눈이 보는 세상 */
@@ -249,6 +252,9 @@
         <div class="gr-n"><b class="num">${cm}<small>cm</small></b><span>평균 키</span></div>
         <div class="gr-n gr-n--t"><b class="num">${ln.toFixed(1)}<small>mm</small></b><span>정상 안구 길이</span>${lab(dN, sN)}</div>
         <div class="gr-n gr-n--c"><b class="num">${lm.toFixed(1)}<small>mm</small></b><span>근시형 안구 길이</span>${lab(dM, sM)}</div>`;
+      const stc = {hy: C.amber, ok: C.teal, my: C.coral}, where = d => d >= .5 ? '초점이 망막 뒤' : d <= -.5 ? '초점이 망막 앞' : '초점이 망막에';
+      const pill = (y, txt, col) => { const w = txt.length * 11.5 + 18; return `<g transform="translate(554 ${y})"><rect x="${-w}" y="0" width="${w}" height="22" rx="11" fill="#fff" stroke="${col}" stroke-width="2"/><text x="${-w / 2}" y="15" font-size="11.5" font-weight="900" fill="${col}" text-anchor="middle">${txt}</text></g>`; };
+      eye.innerHTML += pill(6, `정상 성장 · ${sN[0]} ${fD(dN)} · ${where(dN)}`, stc[sN[1]]) + (Math.abs(dM - dN) > .2 ? pill(32, `근시형 · ${sM[0]} ${fD(dM)} · ${where(dM)}`, stc[sM[1]]) : '');
       const pos = d => clamp((3 - d) / 9 * 100, 1.5, 98.5);
       gauge.innerHTML = `<div class="gg-t"><span>눈의 초점 상태</span><em>${fD(0).replace('0.00D', '0D')} 정시가 가장 좋은 상태</em></div><div class="gg-bar"><u class="gg-n" style="left:${pos(dN).toFixed(1)}%"><b>정상</b></u><u class="gg-m" style="left:${pos(dM).toFixed(1)}%"><b>근시형</b></u></div>
         <div class="gg-z"><span class="z-hy">원시 +3D</span><span class="z-ok">정시 0D</span><span class="z-my">근시 −6D</span></div>`;
@@ -279,10 +285,11 @@
     const CX = 470, CY = 160, RX = 150, RY = 118, LX = 320 + .2 * 300, SX = 190, W = 800, H = 332;
     let t = 0, mode = 'normal', anim = 0;
     el.innerHTML = `<div class="ct hud">${bar('FIG. 03 — CONTROL', '<span class="hd-lg"><i class="t"></i>억제 렌즈<i class="c"></i>일반 렌즈</span>')}
+      <div class="ct-ctl"><div class="seg" data-k="modes"><button type="button" data-m="normal" class="is-on">일반 안경 렌즈</button><button type="button" data-m="control">근시 억제 렌즈</button></div></div>
       <svg viewBox="0 0 ${W} ${H}" class="ct-svg" aria-hidden="true"><defs>
         <radialGradient id="${p}t"><stop offset="0" stop-color="${C.teal}" stop-opacity=".75"/><stop offset="1" stop-color="${C.teal}" stop-opacity="0"/></radialGradient>
         <radialGradient id="${p}c"><stop offset="0" stop-color="${C.coral}" stop-opacity=".75"/><stop offset="1" stop-color="${C.coral}" stop-opacity="0"/></radialGradient></defs><g class="ct-g"></g></svg>
-      <div class="ct-side"><div class="seg" data-k="modes"><button type="button" data-m="normal" class="is-on">일반 안경 렌즈</button><button type="button" data-m="control">근시 억제 렌즈</button></div>
+      <div class="ct-side">
         <div class="ct-steps"></div><p class="sim-cap" data-k="msg"></p></div></div>`;
     const g = el.querySelector('.ct-g'), steps = el.querySelector('.ct-steps'), msg = el.querySelector('[data-k=msg]');
     const onRetina = a => [CX + (RX - 8) * Math.cos(a), CY + (RY - 8) * Math.sin(a)];
@@ -300,28 +307,29 @@
         <text x="${fx}" y="322" font-size="10" font-weight="700" text-anchor="middle" fill="${C.dim}">${ctl > .5 ? '중심 선명 · 주변 초점 조절' : '전체가 같은 도수'}</text>`;
     }
     function draw() {
-      const off = lerp(32, -32, t), colP = t > .5 ? C.teal : C.coral, fov = onRetina(0), A = .72;
+      const off = lerp(36, -22, t), colP = t > .5 ? C.teal : C.coral, fov = onRetina(0), A = 1.12;
       const fp = [-A, A].map(a => { const r = onRetina(a), n = normalAt(a); return [r[0] + n[0] * off, r[1] + n[1] * off, r]; });
       const ray = (pts, col, w = 1.8) => { const d = pts.map(q => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' ');
         return `<polyline points="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-opacity=".75" stroke-linejoin="round"/><polyline points="${d}" fill="none" stroke="#fff" stroke-width="${w}" class="ray-flow"/>`; };
       let s = '';
-      s += eyeModel({x0: CX - RX, cy: CY, L: 2 * RX, ry: RY, col: '#16324f', ret: C.blue, labels: true});
+      s += eyeModel({x0: CX - RX, cy: CY, L: 2 * RX, ry: RY, col: '#5d7088', ret: '#8ea3bd', labels: true, muted: true});
       s += `<path d="M60,${CY - 18} L${SX},${CY - 18} L${LX},${CY - 14} L${fov[0]},${fov[1]} L${LX},${CY + 14} L${SX},${CY + 18} L60,${CY + 18} Z" fill="${C.blue}" opacity=".07"/>`;   // 중심 광선 → 황반
       [-18, 0, 18].forEach(h => { s += ray([[60, CY + h], [SX, CY + h], [LX, CY + h * .8], fov], C.blue); });
       fp.forEach(([x, y, r], i) => {                                    // 주변 광선 (위쪽 시야 → 아래 망막, 아래쪽 시야 → 위 망막)
         const sg = i ? -1 : 1, y0 = CY + sg * 92;
         [-10, 10].forEach(d => {
           const ly = CY + sg * 14 + d * .4, sy = CY + sg * 50 + d, ext = [x + (x - LX) * .12, y + (y - ly) * .12];
-          s += ray([[SX - 90, y0 + d], [SX, sy], [LX, ly], [x, y]].concat(t > .5 ? [ext] : []), colP, 1.6);
+          s += ray([[SX - 90, y0 + d], [SX, sy], [LX, ly], [x, y]].concat(t > .5 ? [ext] : []), colP, 2.4);
         });
         s += `<line x1="${r[0]}" y1="${r[1]}" x2="${x}" y2="${y}" stroke="${colP}" stroke-width="2.4" stroke-dasharray="4 3"/><circle cx="${x}" cy="${y}" r="18" fill="url(#${p}${t > .5 ? 't' : 'c'})" class="pulse"/><circle cx="${x}" cy="${y}" r="7" fill="${colP}" stroke="#fff" stroke-width="2.5"/>`;
       });
-      const [a1, a2] = fp, qx = 2 * fov[0] - (a1[0] + a2[0]) / 2, qy = 2 * fov[1] - (a1[1] + a2[1]) / 2;   // 초점 면 (주변 초점 – 황반 – 주변 초점)
-      s += `<path d="M${a1[0]},${a1[1]} Q${qx},${qy} ${a2[0]},${a2[1]} L${a2[2][0]},${a2[2][1]} A${RX - 8} ${RY - 8} 0 0 0 ${a1[2][0]},${a1[2][1]} Z" fill="${colP}" fill-opacity=".26"/>
-        <path d="M${a1[0]},${a1[1]} Q${qx},${qy} ${a2[0]},${a2[1]}" fill="none" stroke="${colP}" stroke-width="13" stroke-linecap="round" opacity=".2"/>
-        <path d="M${a1[0]},${a1[1]} Q${qx},${qy} ${a2[0]},${a2[1]}" fill="none" stroke="${colP}" stroke-width="5" stroke-linecap="round"/>
-        <circle cx="${fov[0]}" cy="${fov[1]}" r="18" fill="url(#${p}t)" class="pulse"/><circle cx="${fov[0]}" cy="${fov[1]}" r="6.5" fill="#fff" stroke="${C.blue}" stroke-width="3"/>`;
-      let bumps = ''; if (t > .02) for (let i = -5; i <= 5; i++) { if (Math.abs(i) < 2) continue; bumps += `<circle cx="${SX - 14}" cy="${CY + i * 15}" r="3.2" fill="${C.teal}" opacity="${t.toFixed(2)}"/>`; }
+      const NP = 30, cv = [], bs = [];                                   // 초점 면: 망막 곡면을 따라 가장자리로 갈수록 앞(뒤)으로 벗어나는 완만한 곡선
+      for (let i = 0; i <= NP; i++) { const th = -A + 2 * A * i / NP, r = onRetina(th), nn = normalAt(th), o = off * Math.pow(th / A, 2); bs.push(r); cv.push([r[0] + nn[0] * o, r[1] + nn[1] * o]); }
+      const cd = cv.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(''), bd = bs.slice().reverse().map(q => 'L' + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('');
+      s += `<path d="${cd}${bd}Z" fill="${colP}" fill-opacity=".24"/>
+        <path d="${cd}" fill="none" stroke="${colP}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity=".2"/>
+        <path d="${cd}" fill="none" stroke="${colP}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="${fov[0]}" cy="${fov[1]}" r="18" fill="url(#${p}t)" class="pulse"/><circle cx="${fov[0]}" cy="${fov[1]}" r="6.5" fill="#fff" stroke="${C.blue}" stroke-width="3"/>`;      let bumps = ''; if (t > .02) for (let i = -5; i <= 5; i++) { if (Math.abs(i) < 2) continue; bumps += `<circle cx="${SX - 14}" cy="${CY + i * 15}" r="3.2" fill="${C.teal}" opacity="${t.toFixed(2)}"/>`; }
       s += `<path d="M${SX - 16},${CY - 92} C${SX - 6},${CY - 46} ${SX - 6},${CY + 46} ${SX - 16},${CY + 92} L${SX + 14},${CY + 92} C${SX + 2},${CY + 46} ${SX + 2},${CY - 46} ${SX + 14},${CY - 92} Z" fill="rgba(31,79,224,.14)" stroke="${C.blue}" stroke-width="2"/>${bumps}`;
       const grow = t < .5, tag = (x, y, txt, col, anchor = 'start') => `<text x="${x}" y="${y}" font-size="12.5" font-weight="800" fill="${col}" text-anchor="${anchor}" stroke="${C.bg}" stroke-width="4" paint-order="stroke" stroke-linejoin="round">${txt}</text>`;
       g.innerHTML = `${s}${tag(fov[0] - 18, fov[1] - 12, '중심 초점: 망막 위', C.blue, 'end')}

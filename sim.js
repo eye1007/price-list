@@ -164,12 +164,13 @@
     const p = 'rf' + (++uid) + '_';
     const CX = 500, CY = 200, RX = 185, RY = 138, XL = 352, XR = CX + RX - 3, XS = 205, D = XL - XS, DR = XR - XL;
     const MODES = {
-      normal: {label: '정시', f: [DR, DR], tone: '#0b8f63', msg: '빛이 망막 위 한 점에 정확히 모여 선명하게 보입니다.'},
-      myopia: {label: '근시', f: [DR - 92, DR - 92], tone: '#d92d20', msg: '눈에 비해 굴절력이 강해 초점이 망막 <b>앞</b>에 맺힙니다. 먼 곳이 흐려 보여요. 오목렌즈가 빛을 살짝 퍼뜨려 초점을 망막으로 보냅니다.'},
-      hyper:  {label: '원시', f: [DR + 120, DR + 120], tone: '#d97706', msg: '굴절력이 약해 초점이 망막 <b>뒤</b>에 맺힙니다. 가까운 곳이 특히 힘들어요. 볼록렌즈가 빛을 모아 초점을 앞으로 당깁니다.'},
-      astig:  {label: '난시', f: [DR - 70, DR + 60], tone: '#7c3aed', msg: '방향에 따라 굴절력이 달라 <b>초점이 두 곳</b>(파랑·주황)으로 갈라집니다. 사물이 번지고 겹쳐 보여요. 방향별 도수가 다른 난시 렌즈로 한 점에 모읍니다.'}
-    };
-    let mode = 'normal', fA = DR, fB = DR, corr = 0, anim = null;
+      normal: {label: '정시', f: [DR, DR], tone: '#0b8f63', st: '정시 · 초점이 망막에', msg: '빛이 망막 위 한 점에 정확히 모여 선명하게 보입니다.'},
+      myopia: {label: '근시', f: [DR - 92, DR - 92], tone: '#d92d20', kind: 'minus', st: '근시 · 초점이 망막 앞', msg: '눈에 비해 굴절력이 강해 초점이 망막 <b>앞</b>에 맺힙니다. 먼 곳이 흐려 보여요. 오목렌즈가 빛을 살짝 퍼뜨려 초점을 망막으로 보냅니다.'},
+      hyper:  {label: '원시', f: [DR + 120, DR + 120], tone: '#d97706', kind: 'plus', st: '원시 · 초점이 망막 뒤', msg: '굴절력이 약해 초점이 망막 <b>뒤</b>에 맺힙니다. 가까운 곳이 특히 힘들어요. 볼록렌즈가 빛을 모아 초점을 앞으로 당깁니다.'},
+      myast:  {label: '근시성 난시', f: [DR, DR - 105], tone: '#d92d20', kind: 'minus', ast: 1, st: '근시성 난시 · 한 방향이 망막 앞', msg: '한 방향은 망막에 맞고 다른 방향은 초점이 망막 <b>앞</b>에 맺혀 초점이 두 곳(파랑·주황)으로 갈라집니다. 먼 곳이 번지고 겹쳐 보여요. 오목렌즈에 난시 축 도수를 더해 한 점에 모읍니다.'},
+      hyast:  {label: '원시성 난시', f: [DR, DR + 115], tone: '#d97706', kind: 'plus', ast: 1, st: '원시성 난시 · 한 방향이 망막 뒤', msg: '한 방향은 망막에 맞고 다른 방향은 초점이 망막 <b>뒤</b>에 맺혀 초점이 두 곳으로 갈라집니다. 가까운 곳이 번지고 눈이 쉽게 피로해요. 볼록렌즈에 난시 축 도수를 더해 한 점에 모읍니다.'},
+      astig:  {label: '혼합 난시', f: [DR - 70, DR + 60], tone: '#7c3aed', kind: 'plus', ast: 1, st: '혼합 난시 · 초점이 앞뒤로 갈라짐', msg: '방향에 따라 한쪽은 망막 <b>앞</b>, 다른 쪽은 망막 <b>뒤</b>에 초점이 맺혀 사물이 번지고 겹쳐 보여요. 방향별 도수가 다른 난시 렌즈로 한 점에 모읍니다.'}
+    };    let mode = 'normal', fA = DR, fB = DR, corr = 0, anim = null;
     el.innerHTML = `<div class="rf rf--pro"><svg viewBox="0 0 800 400" class="rf-svg" aria-hidden="true"><defs>${eyeDefs(p)}</defs><g class="rf-stage"></g></svg></div>
       <div class="rf-ctl"><div class="seg" data-k="modes">${Object.entries(MODES).map(([k, m]) => `<button data-m="${k}" class="${k === mode ? 'is-on' : ''}">${m.label}</button>`).join('')}</div>
       <button class="btn btn--accent" data-k="corr"><svg class="i" viewBox="0 0 24 24"><circle cx="7" cy="12" r="4"/><circle cx="17" cy="12" r="4"/><path d="M11 12h2"/></svg><span>안경 렌즈로 교정</span></button></div>
@@ -186,7 +187,7 @@
         ? `M${x - 16},${y0 - hh} C${x - 6},${y0 - hh / 2} ${x - 6},${y0 + hh / 2} ${x - 16},${y0 + hh} L${x + 14},${y0 + hh} C${x + 2},${y0 + hh / 2} ${x + 2},${y0 - hh / 2} ${x + 14},${y0 - hh} Z`
         : `M${x - 4},${y0 - hh} C${x - 24},${y0 - hh / 2} ${x - 24},${y0 + hh / 2} ${x - 4},${y0 + hh} C${x + 12},${y0 + hh / 2} ${x + 12},${y0 - hh / 2} ${x - 4},${y0 - hh} Z`;
       return `<g opacity="${a.toFixed(2)}"><path d="${d}" fill="url(#${p}gl)" stroke="#5b8fd1" stroke-width="2"/>
-        <text x="${x}" y="${y0 + hh + 22}" font-size="12.5" font-weight="800" fill="#2f5f9e" text-anchor="middle">${mode === 'astig' ? '난시 교정 렌즈' : kind === 'minus' ? '오목렌즈' : '볼록렌즈'}</text></g>`;
+        <text x="${x}" y="${y0 + hh + 22}" font-size="12.5" font-weight="800" fill="#2f5f9e" text-anchor="middle">${MODES[mode].ast ? '난시 교정 렌즈' : kind === 'minus' ? '오목렌즈' : '볼록렌즈'}</text></g>`;
     }
     function draw() {
       const m = MODES[mode], two = Math.abs(fA - fB) > 1, cols = two ? ['#2f7bff', '#f08a24'] : ['#2f7bff'];
@@ -216,10 +217,10 @@
         <defs><filter id="${p}ib" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${bx.toFixed(2)} ${by.toFixed(2)}"/></filter><clipPath id="${p}ic"><circle r="50"/></clipPath></defs>
         <g clip-path="url(#${p}ic)" filter="url(#${p}ib)"><text y="16" font-size="54" font-weight="900" text-anchor="middle" fill="#15171c">E</text><text y="38" font-size="11" font-weight="800" text-anchor="middle" fill="#334155" letter-spacing="2">F P T O</text></g>
         <text y="74" font-size="11.5" font-weight="800" text-anchor="middle" fill="${ok ? '#0b8f63' : '#d92d20'}">${ok ? '선명하게 보임' : '흐리게 보임'}</text></g>`;
-      const status = corr > .5 ? (mode === 'normal' ? '정시 · 교정 불필요' : `${m.label} · 교정 후 초점이 망막에`) : (mode === 'normal' ? '정시 · 초점이 망막에' : mode === 'myopia' ? '근시 · 초점이 망막 앞' : mode === 'hyper' ? '원시 · 초점이 망막 뒤' : '난시 · 초점이 두 곳');
+      const status = corr > .5 ? (mode === 'normal' ? '정시 · 교정 불필요' : `${m.label} · 교정 후 초점이 망막에`) : m.st;
       stage.innerHTML = `<rect x="0" y="0" width="800" height="400" rx="14" fill="url(#${p}bg)"/>
         <g transform="translate(26 ${CY})"><rect x="0" y="-36" width="34" height="72" rx="5" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><text x="17" y="14" font-size="38" font-weight="900" text-anchor="middle" fill="#15171c">E</text></g>
-        ${eyeBody(p, CX, CY, RX, RY, XL - 22)}${beams}${lines}${focus}${spot}${corr > .02 && mode !== 'normal' ? glasses(mode === 'myopia' ? 'minus' : 'plus', corr) : ''}
+        ${eyeBody(p, CX, CY, RX, RY, XL - 22)}${beams}${lines}${focus}${spot}${corr > .02 && mode !== 'normal' ? glasses(m.kind, corr) : ''}
         ${label(XL - 40, CY + 56, XL - 84, CY + 150, '각막', 'end')}${label(XL + 14, CY - 46, XL + 40, CY - 158, '수정체')}${label(XR - 10, CY - 92, XR - 20, CY - 162, '망막')}${label(XR + 40, CY + 64, XR + 14, CY + 140, '시신경')}
         <g transform="translate(26 26)"><rect width="${16 + status.length * 13}" height="30" rx="15" fill="${corr > .5 || mode === 'normal' ? '#0b8f63' : m.tone}"/><text x="${8 + status.length * 6.5}" y="20" font-size="13" font-weight="800" fill="#fff" text-anchor="middle">${status}</text></g>${inset}`;
       msg.innerHTML = corr > .5 && mode !== 'normal' ? `<b>${m.label} · 교정 후</b> — 렌즈가 빛의 방향을 바꿔 초점이 망막 한 점에 모입니다.` : `<b>${m.label}</b> — ${m.msg}`;
@@ -529,7 +530,7 @@
   }
   Sim.mountGlare = function (el) {
     const W = 1200, H = 540, LW = 470, LH = 320;
-    const st = {sa: .55, coma: .45, tre: .35, veil: .45, mode: 'win', lx: 790, ly: 340, day: false, t: 0};   // t: 0 밤 → 1 낮 (전환 중간값)
+    const st = {sa: .55, coma: .45, tre: .35, veil: .45, mode: 'win', lx: 700, ly: 255, day: false, t: 0};   // t: 0 밤 → 1 낮 (전환 중간값)
     let anim = null;
     el.innerHTML = `<div class="gl2"><div class="gl2-l"><div class="gl"><canvas width="${W}" height="${H}"></canvas><span class="vz-tag vz-tag--l" data-k="tl"></span><span class="vz-tag vz-tag--r" data-k="tr"></span></div>
         <div class="gl-ctl"><div class="seg" data-k="time"><button data-v="day">낮</button><button data-v="night" class="is-on">밤</button></div><p class="sim-cap" data-k="cap"></p></div></div>
@@ -649,18 +650,15 @@
       const tl = el.querySelector('[data-k=tl]'), tr = el.querySelector('[data-k=tr]');
       tl.textContent = st.day ? '낮 · 빛번짐 거의 없음' : '일반 렌즈'; tr.textContent = '렌즈 창 안 · 빛번짐 렌즈'; tr.hidden = st.mode !== 'win' || st.day;
     }
-    function drawPSF() {
+    function drawPSF() {                                              // 수차 하나만 크게: 빛 한 점이 이렇게 번져 보여요
       el.querySelectorAll('[data-psf]').forEach(c => {
         const x = c.getContext('2d'), k = c.dataset.psf, one = {sa: 0, coma: 0, tre: 0, veil: 0, [k]: Math.max(.35, st[k])};
-        x.fillStyle = '#070a12'; x.fillRect(0, 0, 480, 260); x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(239, 0, 2, 260);
+        const gr = x.createRadialGradient(240, 130, 10, 240, 130, 300); gr.addColorStop(0, '#0d1424'); gr.addColorStop(1, '#04060c'); x.fillStyle = gr; x.fillRect(0, 0, 480, 260);
         x.globalCompositeOperation = 'lighter';
-        glarePSF(x, {x: 120, y: 122, r: 6, i: 1, c: [245, 248, 255], ca: -.5}, one, false);
-        glarePSF(x, {x: 360, y: 122, r: 6, i: 1, c: [245, 248, 255], ca: -.5}, one, true);
+        glarePSF(x, {x: 240, y: 130, r: 10, i: 1, c: [250, 252, 255], ca: -.5}, one, false);
         x.globalCompositeOperation = 'source-over';
-        x.font = '800 20px sans-serif'; x.textAlign = 'center'; x.fillStyle = '#cbd5e1'; x.fillText('일반 렌즈', 120, 240); x.fillStyle = '#7fd3e5'; x.fillText('빛번짐 렌즈', 360, 240);
       });
-    }
-    function redraw() {
+    }    function redraw() {
       drawGlare(glN, false); drawGlare(glC, true); compose(); drawPSF();
       el.querySelectorAll('.gl2-r b[data-v]').forEach(b => b.textContent = Math.round(st[b.dataset.v] * 100));
       caption();
